@@ -1,4 +1,6 @@
-export class ErrorOverlay {
+// Dummy class to avoid type errors
+class BaseClass { }
+export class ErrorOverlay extends BaseClass {
   static MESSAGE_TITLE = `We're having trouble displaying this page`;
   static MESSAGE_DESCRIPTION = `Something didn't load correctly on our end.`;
 
@@ -125,42 +127,43 @@ export class ErrorOverlay {
     }
   }
 
-	constructor(err) {
-		console.log('ErrorPage-style overlay constructor called with:', err);
+  connectedCallback() {
+    this.style.position = 'fixed';
+    this.style.top = '0';
+    this.style.left = '0';
+    this.style.width = '100%';
+    this.style.height = '100%';
+    this.style.zIndex = '99999';
+    this.style.backgroundColor = 'white';
+    this.style.display = 'flex';
+    this.style.flexDirection = 'column';
+    this.innerHTML = ErrorOverlay.getOverlayHTML();
+  }
+
+  constructor(err, type) {
+    super();
+    console.log('ErrorPage overlay constructor called with:', err);
 
     // Call editor frame with the error (via post message)
-    ErrorOverlay.sendErrorToParent(err, 'build');
-
-    // Create the overlay element using HTML template
-		const overlay = document.createElement('div');
-		overlay.innerHTML = ErrorOverlay.getOverlayHTML();
-
-		// Add to DOM
-		document.body.appendChild(overlay);
-	}
-}
-
-function getOverlayCode() {
-	return `
-		${ErrorOverlay.toString()}
-	`;
-}
-
-function patchOverlay(code) {
-  return code.replace('class ErrorOverlay', getOverlayCode() + '\nclass OldErrorOverlay');
+    ErrorOverlay.sendErrorToParent(err, type || 'build');
+  }
 }
 
 // See https://github.com/withastro/astro/blob/main/packages/astro/src/vite-plugin-astro-server/plugin.ts#L157
-export default function customErrorOverlayPlugin() {
-	return {
-		name: 'custom-error-overlay',
-		transform(code, id, opts = {}) {
-			if (opts?.ssr) return;
+const customErrorOverlayPlugin = () => {
+  return {
+    name: 'custom-error-overlay',
+    transform(code, id, opts = {}) {
+      if (!id.includes('vite/dist/client/client.mjs') || opts?.ssr) {
+        return;
+      }
 
-			if (!id.includes('vite/dist/client/client.mjs')) return;
-
-			// Replace the Vite overlay with ours
-			return patchOverlay(code);
-		},
-	};
+      const errorOverlayCustomElement = ErrorOverlay.toString().replace('extends BaseClass', 'extends HTMLElement');
+      // Replace the Vite overlay with ours
+      return code.replace('class ErrorOverlay', `${errorOverlayCustomElement}
+      class OldErrorOverlay`);
+    },
+  };
 }
+
+export default customErrorOverlayPlugin;

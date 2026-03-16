@@ -5,13 +5,12 @@ import importPlugin from 'eslint-plugin-import';
 import reactPlugin from 'eslint-plugin-react';
 import globals from 'globals';
 import useImageComponent from './eslint-rules/use-image-component';
-import fixEmptySelectItemValue from './eslint-rules/fix-empty-select-item-value';
 import noEarlyReturnBeforeScrollRef from './eslint-rules/no-early-return-before-scroll-ref';
 
 export default [
   ...eslintPluginAstro.configs.recommended,
   {
-    ignores: ['node_modules', 'dist', '.astro', 'public'],
+    ignores: ['node_modules', 'dist', '.astro', 'public', 'eslint-rules'],
   },
   {
     plugins: {
@@ -21,7 +20,6 @@ export default [
       'custom': {
         rules: {
           'use-image-component': useImageComponent,
-          'fix-empty-select-item-value': fixEmptySelectItemValue,
           'no-early-return-before-scroll-ref': noEarlyReturnBeforeScrollRef,
         },
       },
@@ -56,7 +54,6 @@ export default [
     files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
     rules: {
       'custom/use-image-component': 'error',
-      'custom/fix-empty-select-item-value': 'error',
       'custom/no-early-return-before-scroll-ref': 'error',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',

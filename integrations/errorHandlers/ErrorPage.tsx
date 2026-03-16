@@ -1,17 +1,19 @@
 import { useRouteError } from "react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ErrorOverlay } from "../../vite-error-overlay-plugin";
 
 export default function ErrorPage() {
+  const ref = useRef<HTMLDivElement>(null);
   const error = useRouteError() as Error;
 
   useEffect(() => {
-    ErrorOverlay.sendErrorToParent(error, 'runtime');
+    if (ref.current) {
+      const ErrorOverlay = window.customElements.get('vite-error-overlay');
+      ref.current.appendChild(new ErrorOverlay(error, 'runtime'));
+    }
   }, [error]);
 
   return (
-    <div className="w-full h-full bg-white flex items-center justify-center gap">
-      <div dangerouslySetInnerHTML={{ __html: ErrorOverlay.getOverlayHTML() }} />
-    </div>
+    <div ref={ref}></div>
   );
 };

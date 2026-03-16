@@ -95,7 +95,7 @@ export class BaseCrudService {
     multiReferences?: Record<string, any>
   ): Promise<T> {
     try {
-      const result = await items.insert(collectionId, itemData as Record<string, unknown>);
+      const result = (await items.insert(collectionId, itemData as Record<string, unknown>)) as T;
 
       if (multiReferences && Object.keys(multiReferences).length > 0 && result._id) {
         for (const [propertyName, refIds] of Object.entries(multiReferences)) {
@@ -105,7 +105,7 @@ export class BaseCrudService {
         }
       }
 
-      return result as T;
+      return result;
     } catch (error) {
       // Should consider reverting the insert with a remove in order to prevent partial insert.
       console.error(`Error creating ${collectionId}:`, error);

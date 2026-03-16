@@ -1,16 +1,15 @@
 export default async function loadFramewire(withInit) {
-    // Send error to parent using framewire
-    const isDev = import.meta.env?.DEV ?? false;
-    const isIframe = window.self !== window.top;
+  const isDev = import.meta.env?.DEV ?? false;
+  const isIframe = window.self !== window.top;
 
-    if (!isDev || !isIframe) {
-      return;
-    }
+  if (!isDev || !isIframe) {
+    return;
+  }
 
   try {
     if (!globalThis.framewire) {
       const url = getFramewireUrl();
-      const framewireModule = await import(url);
+      const framewireModule = await import(/* @vite-ignore */ url);
       globalThis.framewire = framewireModule;
       console.log("Framewire loaded");
     }
@@ -35,7 +34,7 @@ function getVersion() {
 
 function getFramewireUrl() {
   const version = getVersion();
-  const localUrl = "http://localhost:3202/framewire/index.mjs";
+  const localUrl = "https://localhost:3202/framewire/index.mjs";
   const cdnUrl = `https://static.parastorage.com/services/framewire/${version}/index.mjs`;
   const isLocal = version === "local";
   return isLocal ? localUrl : cdnUrl;
