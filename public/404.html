@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Teja Priyan World</title>
+    <script>
+      // SPA fallback for static hosting (e.g. GitHub Pages).
+      // Preserve the intended deep link and hand it back to the client router.
+      (function () {
+        var path = window.location.pathname.replace(/\/$/, "");
+        var segments = path.split("/").filter(Boolean);
+        // First segment is the repo name when hosted under a project site.
+        var route = "/" + segments.slice(1).join("/");
+        sessionStorage.setItem("gh-pages-redirect", route);
+        window.location.replace(path.substring(0, path.length) ? "/" + segments[0] + "/" : "/");
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript>Redirecting to Teja Priyan World…</noscript>
+  </body>
+</html>

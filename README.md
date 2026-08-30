@@ -1,147 +1,137 @@
-# Wixstro - Wix Astro Template
+# Teja Priyan World 🎮
 
-A modern, full-featured Wix Astro template built with React, TypeScript, and Tailwind CSS. This template provides a solid foundation for building dynamic, interactive websites with Wix's powerful ecosystem.
+A neon cyberpunk gaming arena built with **Astro**, **React**, **TypeScript** and **Tailwind CSS**. Forge your player identity, connect to the grid, and battle through a growing collection of browser mini-games.
 
-## 🚀 Features
+> Electric purple · Neon cyan · Magenta · Hard light · Cinematic
 
-- **Astro Framework** - Modern static site generator with server-side rendering
-- **React Integration** - Full React support with JSX components
-- **TypeScript** - Type-safe development experience
-- **Tailwind CSS** - Utility-first CSS framework with custom components
-- **Wix Integration** - Seamless integration with Wix services and APIs
-- **Modern UI Components** - Radix UI components with custom styling
-- **Authentication** - Built-in member authentication and protected routes
-- **CMS Integration** - Content management system integration
-- **Client-side Routing** - React Router for seamless navigation
-- **Responsive Design** - Mobile-first responsive design
-- **Testing** - Vitest testing framework setup
-- **Development Tools** - ESLint, TypeScript checking, and more
+---
 
-## 🛠️ Tech Stack
+## ✨ Features
 
-- **Framework**: Astro 5.8.0
-- **Frontend**: React 18.3.0
-- **Styling**: Tailwind CSS 3.4.14
-- **Language**: TypeScript 5.8.3
-- **UI Components**: Radix UI
-- **State Management**: Zustand
-- **Forms**: React Hook Form with Zod validation
-- **Testing**: Vitest
-- **Build Tool**: Vite
-- **Deployment**: Cloudflare
+- **Player Card Generator** — create a unique gamer identity (name, age, gender, gamer tag) rendered as an animated holographic card.
+- **Mini-Games Arena** — a responsive grid of games, each with a full detail page and a playable `<canvas>` experience.
+- **4 game engines** — Arcade (catch), Shooter, Racing, and Puzzle (match-3), all rendered on a shared canvas loop with score + high-score tracking.
+- **Cyberpunk UI** — scanlines, glitch text, neon glows, parallax scroll, and Framer Motion animations.
+- **Standalone by default** — runs with zero external services using local seed data.
+- **Optional Wix integration** — when `WIX=1`, reads/writes the Wix Data CMS (`minigames`, `playercards` collections) and enables member auth.
 
+---
+
+## 🛠 Tech Stack
+
+| Layer | Tech |
+|---|---|
+| Framework | Astro 5 (static by default) |
+| Frontend | React 18 + TypeScript |
+| Styling | Tailwind CSS 3 + Radix UI |
+| Animation | Framer Motion |
+| Routing | React Router (SPA) |
+| State | Zustand |
+| Data (optional) | Wix Data SDK |
+| Tests | Vitest |
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (version 18 or higher)
-- npm or yarn package manager
-- Wix account and site
+- Node.js 18+ and npm.
 
-### Installation
+### Install & run
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+npm run dev
+```
 
-2. **Set up environment variables**:
-   ```bash
-   npm run env
-   ```
+Open http://localhost:4321 — the arena loads instantly with bundled seed games.
 
-3. **Start development server**:
-   ```bash
-   npm run dev
-   ```
+### Production build (static)
 
-The development server will start and you can view your site at `http://localhost:4321`.
+```bash
+npm run build
+npm run preview
+```
+
+The static site is emitted to `dist/` and can be hosted anywhere (Vercel, Netlify, Cloudflare Pages, GitHub Pages).
+
+---
 
 ## 📁 Project Structure
 
 ```
-main/
-├── src/
-│   ├── components/          # React components
-│   │   ├── ui/             # Reusable UI components
-│   │   ├── Head.tsx        # Page head component
-│   │   └── Router.tsx      # Routing component
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # Utility functions
-│   ├── pages/              # Astro pages
-│   └── styles/             # Global styles
-├── integrations/           # Wix integrations
-│   ├── cms/               # CMS integration
-│   └── members/           # Member authentication
-├── public/                # Static assets
-└── eslint-rules/          # Custom ESLint rules
+src/
+├── components/
+│   ├── pages/            # HomePage, GameDetailPage
+│   ├── games/            # GameCanvas (canvas game engines)
+│   ├── ui/               # Radix UI + shared components
+│   ├── Header.tsx        # Navigation
+│   ├── Footer.tsx
+│   └── Router.tsx        # React Router setup
+├── lib/
+│   ├── seed-data.ts      # Bundled fallback games/cards
+│   └── utils.ts
+├── entities/             # MiniGames / PlayerCards types
+├── pages/[...slug].astro # SPA shell
+└── styles/               # Global + font styles
+integrations/
+├── cms/                  # BaseCrudService (Wix Data with local fallback)
+└── members/              # Member auth (optional)
+public/
+└── images/games/         # Game cover art
 ```
 
-## 🎨 UI Components
+---
 
-This template includes a comprehensive set of UI components built with Radix UI and styled with Tailwind CSS:
+## ⚙️ Configuration
 
-- **Layout**: Accordion, Collapsible, Tabs, Sheet
-- **Forms**: Input, Select, Checkbox, Radio Group, Switch
-- **Navigation**: Navigation Menu, Menubar, Breadcrumb
-- **Feedback**: Alert, Toast, Progress, Skeleton
-- **Overlays**: Dialog, Popover, Tooltip, Hover Card
-- **Data Display**: Table, Card, Badge, Avatar
-- **Interactive**: Button, Toggle, Slider, Command
+### Standalone (default)
 
-## 🔧 Available Scripts
+No configuration needed. The data layer falls back to `src/lib/seed-data.ts` when the Wix SDK isn't present.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run release` - Release to Wix
-- `npm run env` - Pull environment variables
-- `npm run check` - Type check with Astro
-- `npm run test:run` - Run tests
-- `npm install` - Install dependencies
+### Wix mode
+
+The project was scaffolded from the Wix Astro template. To use the live CMS and member auth:
+
+```bash
+npm run env          # pull Wix environment variables (requires Wix CLI auth)
+npm run dev:wix      # run with Wix runtime
+npm run build:wix    # build for Cloudflare/Wix
+```
+
+Set `WIX=1` before the relevant command to enable the Wix integrations in `astro.config.mjs`.
+
+### Base path
+
+For sub-directory hosting (e.g. GitHub Pages project sites), set the base before building:
+
+```bash
+ASTRO_BASE=/Gamehub/ npm run build
+```
+
+---
 
 ## 🧪 Testing
-
-The project includes Vitest for testing:
 
 ```bash
 npm run test:run
 ```
 
-## 📱 Responsive Design
-
-The template is built with a mobile-first approach and includes:
-
-- Responsive breakpoints
-- Touch-friendly interactions
-- Optimized images
-- Flexible layouts
+---
 
 ## 🚀 Deployment
 
-The template is configured for deployment on Cloudflare:
-
-```bash
-npm run build
-```
+The site builds to a fully static `dist/`. A GitHub Actions workflow (`.github/workflows/deploy.yml`) is included to deploy to **GitHub Pages** — enable Pages in the repo settings (Source: *GitHub Actions*) and push.
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 🆘 Support
+## 📄 License
 
-For support and questions:
-
-- Check the [Wix Developer Documentation](https://dev.wix.com/)
-- Review the [Astro Documentation](https://docs.astro.build/)
-
+[MIT](LICENSE)
 
 ---
 
-Built with ❤️ using Wix Vibe, Astro, and modern web technologies.
+Built with ❤️ using Astro, React, and a whole lot of neon.

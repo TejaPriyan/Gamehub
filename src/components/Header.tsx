@@ -54,10 +54,10 @@ export default function Header({ playSound }: HeaderProps) {
             </div>
             <div>
               <h1 className="font-heading text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-magenta">
-                TEJA
+                TEJA PRIYAN
               </h1>
               <p className="font-paragraph text-xs text-light-foreground/60 -mt-1">
-                GAMING HUB
+                WORLD
               </p>
             </div>
           </Link>

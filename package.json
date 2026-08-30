@@ -1,14 +1,18 @@
 {
-  "name": "wixstro",
+  "name": "teja-priyan-world",
   "type": "module",
   "version": "1.0.0",
+  "description": "Teja Priyan World — a neon cyberpunk gaming arena built with Astro, React and Tailwind CSS.",
   "scripts": {
-    "dev": "wix dev",
-    "build": "wix build",
-    "preview": "wix preview",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "dev:wix": "WIX=1 wix dev",
+    "build:wix": "WIX=1 wix build",
+    "preview:wix": "WIX=1 wix preview",
     "release": "wix release",
     "env": "wix env pull",
-    "check": "npx astro check --js-only",
+    "check": "astro check",
     "test:run": "vitest run"
   },
   "dependencies": {
@@ -157,6 +161,7 @@
   "overrides": {
     "@wix/services-definitions": "^1.0.1",
     "@wix/services-manager": "^1.0.2",
-    "@wix/services-manager-react": "^1.0.3"
+    "@wix/services-manager-react": "^1.0.3",
+    "@wix/headless-forms": "0.0.45"
   }
 }
