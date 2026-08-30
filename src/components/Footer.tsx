@@ -58,10 +58,10 @@ export default function Footer() {
               </div>
               <div>
                 <h2 className="font-heading text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-magenta">
-                  TEJA
+                  TEJA PRIYAN
                 </h2>
                 <p className="font-paragraph text-xs text-light-foreground/60 -mt-1">
-                  GAMING HUB
+                  WORLD
                 </p>
               </div>
             </Link>
@@ -122,7 +122,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-accent-cyan/10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="font-paragraph text-sm text-light-foreground/50 text-center md:text-left">
-              © {currentYear} Teja Gaming Hub. All rights reserved.
+              © {currentYear} Teja Priyan World. All rights reserved.
             </p>
 
             <div className="flex items-center gap-2 font-paragraph text-sm text-light-foreground/50">

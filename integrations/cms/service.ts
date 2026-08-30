@@ -1,5 +1,5 @@
-import { items } from "@wix/data";
 import { WixDataItem } from ".";
+import { seedMiniGames, seedPlayerCards } from "@/lib/seed-data";
 
 /**
  * Pagination options for querying collections
@@ -43,8 +43,34 @@ export interface PaginatedResult<T> {
 }
 
 /**
+ * Local in-memory collections used when there is no Wix runtime.
+ * Enables the site to run fully standalone (dev preview / static hosting)
+ * while still reading from Wix Data when it is available.
+ */
+const LOCAL_COLLECTIONS: Record<string, WixDataItem[]> = {
+  minigames: seedMiniGames as unknown as WixDataItem[],
+  playercards: seedPlayerCards as unknown as WixDataItem[],
+};
+
+/**
+ * Lazily loads the Wix Data SDK. Returns `null` when running standalone so
+ * callers can fall back to the local collections above.
+ */
+async function getWixItems(): Promise<any | null> {
+  try {
+    const mod = await import("@wix/data");
+    return mod.items;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Generic CRUD Service class for Wix Data collections
- * Provides type-safe CRUD operations with error handling
+ * Provides type-safe CRUD operations with error handling.
+ *
+ * Falls back to local in-memory seed data when the Wix SDK is unavailable,
+ * so the same code works both on Wix and as a standalone site.
  */
 export class BaseCrudService {
   /**
@@ -57,6 +83,9 @@ export class BaseCrudService {
     multiRefs: string[]
   ): Promise<T> {
     if (multiRefs.length === 0) return item;
+
+    const items = await getWixItems();
+    if (!items) return item;
 
     const itemWithRefs = { ...item } as any;
     itemWithRefs._refMeta = {};
@@ -94,6 +123,19 @@ export class BaseCrudService {
     itemData: Partial<T> | Record<string, unknown>,
     multiReferences?: Record<string, any>
   ): Promise<T> {
+    const items = await getWixItems();
+
+    if (!items) {
+      // Standalone: persist locally in memory (per browser session).
+      const created = {
+        ...(itemData as Record<string, unknown>),
+        _id: (itemData as Record<string, unknown>)._id || crypto.randomUUID(),
+      } as T;
+      if (!LOCAL_COLLECTIONS[collectionId]) LOCAL_COLLECTIONS[collectionId] = [];
+      LOCAL_COLLECTIONS[collectionId].push(created as WixDataItem);
+      return created;
+    }
+
     try {
       const result = (await items.insert(collectionId, itemData as Record<string, unknown>)) as T;
 
@@ -107,7 +149,6 @@ export class BaseCrudService {
 
       return result;
     } catch (error) {
-      // Should consider reverting the insert with a remove in order to prevent partial insert.
       console.error(`Error creating ${collectionId}:`, error);
       throw new Error(
         error instanceof Error ? error.message : `Failed to create ${collectionId}`
@@ -124,6 +165,20 @@ export class BaseCrudService {
     includeRefs?: { singleRef?: string[]; multiRef?: string[] } | string[],
     pagination?: PaginationOptions
   ): Promise<PaginatedResult<T>> {
+    const items = await getWixItems();
+
+    if (!items) {
+      const local = (LOCAL_COLLECTIONS[collectionId] || []) as T[];
+      return {
+        items: local,
+        totalCount: local.length,
+        hasNext: false,
+        currentPage: 0,
+        pageSize: 50,
+        nextSkip: null,
+      };
+    }
+
     try {
       const limit = Math.min(pagination?.limit ?? 50, 1000);
       const skip = pagination?.skip ?? 0;
@@ -167,6 +222,13 @@ export class BaseCrudService {
     itemId: string,
     includeRefs?: { singleRef?: string[]; multiRef?: string[] } | string[]
   ): Promise<T | null> {
+    const items = await getWixItems();
+
+    if (!items) {
+      const local = (LOCAL_COLLECTIONS[collectionId] || []) as T[];
+      return local.find((item) => item._id === itemId) ?? null;
+    }
+
     try {
       // Support both old format (string[]) and new format ({ singleRef, multiRef })
       const isLegacyFormat = Array.isArray(includeRefs);
@@ -197,15 +259,24 @@ export class BaseCrudService {
    * @returns Promise<T> - The updated item
    */
   static async update<T extends WixDataItem>(collectionId: string, itemData: T): Promise<T> {
-    try {
-      if (!itemData._id) {
-        throw new Error(`${collectionId} ID is required for update`);
+    if (!itemData._id) {
+      throw new Error(`${collectionId} ID is required for update`);
+    }
+
+    const items = await getWixItems();
+    if (!items) {
+      const local = (LOCAL_COLLECTIONS[collectionId] || []) as T[];
+      const index = local.findIndex((item) => item._id === itemData._id);
+      if (index >= 0) {
+        local[index] = { ...local[index], ...itemData };
+        return local[index];
       }
+      return itemData;
+    }
 
+    try {
       const currentItem = await this.getById<T>(collectionId, itemData._id);
-
       const mergedData = { ...currentItem, ...itemData };
-
       const result = await items.update(collectionId, mergedData);
       return result as T;
     } catch (error) {
@@ -222,11 +293,22 @@ export class BaseCrudService {
    * @returns Promise<T> - The deleted item
    */
   static async delete<T extends WixDataItem>(collectionId: string, itemId: string): Promise<T> {
-    try {
-      if (!itemId) {
-        throw new Error(`${collectionId} ID is required for deletion`);
-      }
+    if (!itemId) {
+      throw new Error(`${collectionId} ID is required for deletion`);
+    }
 
+    const items = await getWixItems();
+    if (!items) {
+      const local = (LOCAL_COLLECTIONS[collectionId] || []) as T[];
+      const index = local.findIndex((item) => item._id === itemId);
+      if (index >= 0) {
+        const [removed] = local.splice(index, 1);
+        return removed as T;
+      }
+      throw new Error(`Item ${itemId} not found in ${collectionId}`);
+    }
+
+    try {
       const result = await items.remove(collectionId, itemId);
       return result as T;
     } catch (error) {
@@ -248,6 +330,9 @@ export class BaseCrudService {
     itemId: string,
     references: Record<string, string[]>
   ): Promise<void> {
+    const items = await getWixItems();
+    if (!items) return;
+
     try {
       for (const [fieldName, refIds] of Object.entries(references)) {
         if (refIds.length > 0) {
@@ -273,6 +358,9 @@ export class BaseCrudService {
     itemId: string,
     references: Record<string, string[]>
   ): Promise<void> {
+    const items = await getWixItems();
+    if (!items) return;
+
     try {
       for (const [fieldName, refIds] of Object.entries(references)) {
         if (refIds.length > 0) {
@@ -286,5 +374,4 @@ export class BaseCrudService {
       );
     }
   }
-
 }

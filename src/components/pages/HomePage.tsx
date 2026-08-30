@@ -331,7 +331,7 @@ export default function HomePage() {
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-magenta to-accent-purple">The Grid</span>
               </h2>
               <p className="text-lg text-light-foreground/80 max-w-md border-l-2 border-accent-magenta/50 pl-6">
-                Teja Gaming Hub isn't just a platform; it's a living, breathing digital ecosystem. Every interaction, every victory, shapes the neon-lit landscape of our shared reality.
+                Teja Priyan World isn't just a platform; it's a living, breathing digital ecosystem. Every interaction, every victory, shapes the neon-lit landscape of our shared reality.
               </p>
             </motion.div>
 
