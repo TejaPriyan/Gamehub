@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tejapriyan.github.io/Gamehub/sitemap.xml
