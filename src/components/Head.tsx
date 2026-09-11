@@ -15,7 +15,9 @@ export const Head = () => {
         content="A cyberpunk gaming arena — forge your player card and dominate the mini-games."
       />
       <meta property="og:type" content="website" />
+      <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.ico`} sizes="any" />
       <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+      <link rel="apple-touch-icon" href={`${import.meta.env.BASE_URL}apple-touch-icon.png`} />
       {/* Fonts */}
       <link rel="preconnect" href="https://static.parastorage.com" />
     </>
