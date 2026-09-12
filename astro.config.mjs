@@ -11,6 +11,7 @@ const isBuild = process.env.NODE_ENV === "production";
 const base = process.env.ASTRO_BASE || "/";
 
 const config = {
+  site: "https://tejapriyanhub.vercel.app",
   base,
   output: isWix ? "server" : "static",
   integrations: [tailwind(), react()],

@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tejapriyan.github.io/Gamehub/sitemap.xml
+Sitemap: https://tejapriyanhub.vercel.app/sitemap.xml
+Host: https://tejapriyanhub.vercel.app
