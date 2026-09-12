@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
+  User,
   X, 
   RotateCcw, 
   Trophy, 
@@ -780,11 +781,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       onResize: (newW: number, newH: number) => {
         width = newW;
         height = newH;
-        bunkers = [
-          { x: newW * 0.25, hp: bunkers[0]?.hp ?? 10 },
-          { x: newW * 0.5, hp: bunkers[1]?.hp ?? 10 },
-          { x: newW * 0.75, hp: bunkers[2]?.hp ?? 10 },
-        ];
       },
     };
   };
@@ -1955,6 +1951,11 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       onResize: (newW: number, newH: number) => {
         width = newW;
         height = newH;
+        bunkers = [
+          { x: newW * 0.25, hp: bunkers[0]?.hp ?? 10 },
+          { x: newW * 0.5, hp: bunkers[1]?.hp ?? 10 },
+          { x: newW * 0.75, hp: bunkers[2]?.hp ?? 10 },
+        ];
       },
     };
   };

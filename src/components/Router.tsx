@@ -35,16 +35,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
-        routeMetadata: {
-          pageIdentifier: 'home',
-        },
       },
       {
         path: "game/:id",
         element: <GameDetailPage />,
-        routeMetadata: {
-          pageIdentifier: 'game-detail',
-        },
       },
       {
         path: "*",
