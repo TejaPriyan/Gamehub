@@ -123,7 +123,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
       set({ isLoading: true, error: null });
       try {
-        const cart = await currentCart.getCurrentCart();
+        const cart = await (currentCart as any).getCurrentCart();
         set({
           items: mapCartToItems(cart),
           isLoading: false,
@@ -149,7 +149,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       set({ addingItemId: input.itemId, error: null });
 
       try {
-        const result = await currentCart.addToCurrentCart({
+        const result = await (currentCart as any).addToCurrentCart({
           lineItems: [{
             catalogReference: {
               catalogItemId: input.itemId,
@@ -188,7 +188,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       set({ items: items.filter(i => i.id !== item.id) });
 
       // Server call (fire and forget, rollback on error)
-      currentCart.removeLineItemsFromCurrentCart([item.id]).catch((error) => {
+      (currentCart as any).removeLineItemsFromCurrentCart([item.id]).catch((error) => {
         console.error('Remove from cart failed:', error);
         // Rollback - add item back
         set((state) => ({ items: [...state.items, item] }));
@@ -199,9 +199,9 @@ export const useCartStore = create<CartStore>((set, get) => ({
     _sendQuantityUpdate: async (lineItemId: string, quantity: number) => {
       try {
         if (quantity <= 0) {
-          await currentCart.removeLineItemsFromCurrentCart([lineItemId]);
+          await (currentCart as any).removeLineItemsFromCurrentCart([lineItemId]);
         } else {
-          await currentCart.updateCurrentCartLineItemQuantity([{ _id: lineItemId, quantity }]);
+          await (currentCart as any).updateCurrentCartLineItemQuantity([{ _id: lineItemId, quantity }]);
         }
       } catch (error) {
         console.error('Update quantity failed:', error);
@@ -251,7 +251,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       set({ items: [] });
 
       // Server call
-      currentCart.deleteCurrentCart().catch((error) => {
+      (currentCart as any).deleteCurrentCart().catch((error) => {
         console.error('Clear cart failed:', error);
         // Rollback
         set({ items: previousItems });
@@ -263,7 +263,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       set({ isCheckingOut: true, error: null });
 
       try {
-        const checkoutResult = await currentCart.createCheckoutFromCurrentCart({
+        const checkoutResult = await (currentCart as any).createCheckoutFromCurrentCart({
           channelType: currentCart.ChannelType.WEB,
         });
 

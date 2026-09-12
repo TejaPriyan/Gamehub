@@ -6,6 +6,10 @@ import {
   Trophy, 
   Volume2, 
   VolumeX, 
+  Pause,
+  Play,
+  Heart,
+  Zap,
   ChevronLeft, 
   ChevronRight 
 } from 'lucide-react';
@@ -1518,7 +1522,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       <div className="relative p-4 md:p-6 rounded-2xl bg-dark-background/90 backdrop-blur-xl border-2 border-accent-cyan/30 shadow-[0_0_40px_rgba(0,255,255,0.15)]">
         {/* Game Top HUD */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-accent-cyan/20">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h3 className="font-heading text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-magenta uppercase">
               {game.gameTitle}
             </h3>
@@ -1533,9 +1537,28 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
                 BEST: {highScore}
               </div>
             )}
+            {overdrivePercent > 0 && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-yellow-400/15 border border-yellow-400/40 text-yellow-300 font-mono text-xs font-bold">
+                <Zap className="w-3 h-3 animate-pulse" />
+                <span>OVERDRIVE {overdrivePercent}%</span>
+              </div>
+            )}
+            {(gameId.includes('slash') || gameId.includes('laser')) && (
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-400 font-mono text-xs font-bold">
+                <Heart className="w-3 h-3 fill-current" />
+                <span>LIVES: {lives}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsPaused(!isPaused)}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-light-foreground/80 hover:text-accent-cyan hover:border-accent-cyan transition-colors"
+              title={isPaused ? 'Resume Game' : 'Pause Game'}
+            >
+              {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+            </button>
             <button
               onClick={toggleSound}
               className="p-2 rounded-lg bg-white/5 border border-white/10 text-light-foreground/80 hover:text-accent-cyan hover:border-accent-cyan transition-colors"
