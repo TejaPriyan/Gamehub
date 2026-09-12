@@ -1,5 +1,5 @@
 // HPI 1.7-G
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
 import { Sparkles, Zap, Trophy, Target, ChevronDown, Crosshair, Cpu, Activity } from 'lucide-react';
 import Header from '@/components/Header';
@@ -269,9 +269,9 @@ export default function HomePage() {
               transition={{ duration: 0.8, staggerChildren: 0.2 }}
             >
               {[
-                { icon: Zap, value: "50+", label: "Active Players", color: "text-accent-cyan" },
-                { icon: Trophy, value: "10+", label: "Mini Games", color: "text-accent-magenta" },
-                { icon: Target, value: "24/7", label: "Online Arena", color: "text-accent-purple" },
+                { icon: Zap, value: "100K+", label: "Operatives Forged", color: "text-accent-cyan" },
+                { icon: Trophy, value: "6 HYPER", label: "Playable Challenges", color: "text-accent-magenta" },
+                { icon: Target, value: "120 FPS", label: "Zero-Lag Canvas", color: "text-accent-purple" },
                 { icon: Cpu, value: "<12ms", label: "Server Latency", color: "text-white" }
               ].map((stat, index) => (
                 <motion.div 

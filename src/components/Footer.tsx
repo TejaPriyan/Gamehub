@@ -1,51 +1,51 @@
 import { motion } from 'framer-motion';
-import { Gamepad2, Github, Twitter, Youtube, Twitch, Heart } from 'lucide-react';
+import { Gamepad2, Github, Globe, Sparkles, Heart, ExternalLink, Terminal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { icon: Twitter, href: '#', label: 'Twitter', color: 'hover:text-accent-cyan' },
-    { icon: Youtube, href: '#', label: 'YouTube', color: 'hover:text-accent-magenta' },
-    { icon: Twitch, href: '#', label: 'Twitch', color: 'hover:text-accent-purple' },
-    { icon: Github, href: '#', label: 'GitHub', color: 'hover:text-accent-cyan' },
+    { icon: Github, href: 'https://github.com/TejaPriyan', label: 'GitHub', color: 'hover:text-accent-cyan' },
+    { icon: Globe, href: 'https://portfoliotejapriyan.vercel.app/', label: 'Portfolio', color: 'hover:text-accent-magenta' },
+    { icon: Sparkles, href: 'https://github.com/TejaPriyan/Gamehub', label: 'Gamehub Repo', color: 'hover:text-accent-purple' },
   ];
 
   const footerLinks = [
     {
-      title: 'Gaming',
+      title: 'ARENA CHALLENGES',
       links: [
-        { label: 'Mini Games', href: '#games' },
-        { label: 'Player Cards', href: '#hero' },
-        { label: 'Leaderboards', href: '#' },
-        { label: 'Tournaments', href: '#' },
+        { label: 'Neon Pulse (Rhythm)', href: '#games' },
+        { label: 'Vortex Defender (360°)', href: '#games' },
+        { label: 'Quantum Drift 2099', href: '#games' },
+        { label: 'Hexa Matrix (Puzzle)', href: '#games' },
+        { label: 'Cyber Slash (Reflex)', href: '#games' },
+        { label: 'Grav-Runner (Platformer)', href: '#games' },
       ],
     },
     {
-      title: 'Community',
+      title: 'OPERATIVE CARDS',
       links: [
-        { label: 'Discord', href: '#' },
-        { label: 'Forums', href: '#' },
-        { label: 'Events', href: '#' },
-        { label: 'Support', href: '#' },
+        { label: 'Forge Player Identity', href: '#hero' },
+        { label: '3D Holographic Tilt', href: '#hero' },
+        { label: 'Download Card PNG', href: '#hero' },
+        { label: 'Share Gamer Tag', href: '#hero' },
       ],
     },
     {
-      title: 'Resources',
+      title: 'ECOSYSTEM',
       links: [
-        { label: 'Game Guides', href: '#' },
-        { label: 'FAQ', href: '#' },
-        { label: 'API Docs', href: '#' },
-        { label: 'Blog', href: '#' },
+        { label: 'Teja Priyan Portfolio', href: 'https://portfoliotejapriyan.vercel.app/' },
+        { label: 'GitHub Repositories', href: 'https://github.com/TejaPriyan' },
+        { label: 'AI Workspace', href: 'https://github.com/TejaPriyan/TejapriyanAI' },
       ],
     },
   ];
 
   return (
     <footer className="relative bg-dark-background border-t border-accent-cyan/20">
-      {/* Glow Effect */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan to-transparent opacity-50" />
+      {/* Top Glow Accent */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan to-transparent opacity-60" />
 
       <div className="max-w-[120rem] mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
@@ -57,61 +57,53 @@ export default function Footer() {
                 <Gamepad2 className="w-12 h-12 text-accent-cyan relative z-10" />
               </div>
               <div>
-                <h2 className="font-heading text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-magenta">
+                <h2 className="font-heading text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-magenta tracking-tight">
                   TEJA PRIYAN
                 </h2>
-                <p className="font-paragraph text-xs text-light-foreground/60 -mt-1">
-                  WORLD
+                <p className="font-mono text-xs text-light-foreground/60 tracking-widest uppercase -mt-1">
+                  WORLD • CYBER ARCADE
                 </p>
               </div>
             </Link>
 
-            <p className="font-paragraph text-sm text-light-foreground/70 max-w-md">
-              Your ultimate destination for anime-inspired cyberpunk gaming. Create your player identity, dominate mini-games, and join a thriving community of gamers.
+            <p className="font-paragraph text-sm text-light-foreground/75 max-w-md leading-relaxed">
+              High-performance cyberpunk browser arcade and operative card generator. Built with Astro, React, Framer Motion, and Web Audio API by Teja Priyan.
             </p>
 
-            {/* Social Links */}
-            <div className="flex items-center gap-4">
-              {socialLinks.map((social, index) => (
-                <motion.a
+            {/* Social & Official Links */}
+            <div className="flex items-center gap-3 pt-2">
+              {socialLinks.map((social) => (
+                <a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`p-3 rounded-lg bg-light-foreground/5 border border-light-foreground/10 ${social.color} transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-accent-cyan/20`}
-                  whileHover={{ y: -4 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className={`p-3 rounded-xl bg-white/5 border border-white/10 ${social.color} transition-all duration-300 hover:scale-105 hover:border-accent-cyan/50 hover:shadow-[0_0_15px_rgba(0,255,255,0.25)]`}
+                  title={social.label}
                 >
                   <social.icon className="w-5 h-5" />
-                </motion.a>
+                </a>
               ))}
             </div>
           </div>
 
-          {/* Footer Links */}
-          {footerLinks.map((section, sectionIndex) => (
-            <div key={section.title} className="space-y-4">
-              <h3 className="font-heading text-lg font-bold text-accent-cyan uppercase">
+          {/* Links Columns */}
+          {footerLinks.map((section) => (
+            <div key={section.title} className="space-y-4 font-mono">
+              <h3 className="text-xs font-bold text-accent-cyan uppercase tracking-wider">
                 {section.title}
               </h3>
-              <ul className="space-y-3">
-                {section.links.map((link, linkIndex) => (
-                  <motion.li
-                    key={link.label}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: (sectionIndex * 0.1) + (linkIndex * 0.05) }}
-                  >
+              <ul className="space-y-2.5 text-xs">
+                {section.links.map((link) => (
+                  <li key={link.label}>
                     <a
                       href={link.href}
-                      className="font-paragraph text-sm text-light-foreground/60 hover:text-accent-magenta transition-colors duration-300 inline-flex items-center gap-2 group"
+                      className="text-light-foreground/65 hover:text-accent-magenta transition-colors inline-flex items-center gap-1.5 group"
                     >
-                      <span className="w-0 h-px bg-accent-magenta group-hover:w-4 transition-all duration-300" />
-                      {link.label}
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-cyan/40 group-hover:bg-accent-magenta transition-colors" />
+                      <span>{link.label}</span>
                     </a>
-                  </motion.li>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -119,38 +111,30 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-accent-cyan/10">
+        <div className="pt-8 border-t border-white/10 font-mono text-xs text-light-foreground/55">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="font-paragraph text-sm text-light-foreground/50 text-center md:text-left">
-              © {currentYear} Teja Priyan World. All rights reserved.
+            <p className="text-center md:text-left">
+              &copy; {currentYear} Teja Priyan World. All rights reserved.
             </p>
 
-            <div className="flex items-center gap-2 font-paragraph text-sm text-light-foreground/50">
-              <span>Crafted with</span>
-              <Heart className="w-4 h-4 text-accent-magenta fill-accent-magenta animate-pulse" />
-              <span>for gamers worldwide</span>
+            <div className="flex items-center gap-2">
+              <span>Engineered by</span>
+              <span className="text-accent-cyan font-bold">Teja Priyan</span>
+              <span>with</span>
+              <Heart className="w-3.5 h-3.5 text-accent-magenta fill-accent-magenta animate-pulse" />
             </div>
 
-            <div className="flex items-center gap-6">
-              <a
-                href="#"
-                className="font-paragraph text-sm text-light-foreground/50 hover:text-accent-cyan transition-colors duration-300"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="#"
-                className="font-paragraph text-sm text-light-foreground/50 hover:text-accent-cyan transition-colors duration-300"
-              >
-                Terms of Service
-              </a>
+            <div className="flex items-center gap-4">
+              <span className="text-accent-cyan">STATION: ONLINE</span>
+              <span>//</span>
+              <span>LATENCY: 12ms</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Glow */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-accent-magenta via-accent-purple to-accent-cyan opacity-30" />
+      {/* Bottom Border Accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-accent-magenta via-accent-purple to-accent-cyan opacity-40" />
     </footer>
   );
 }
