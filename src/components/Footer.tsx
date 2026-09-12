@@ -1,14 +1,15 @@
 import { motion } from 'framer-motion';
-import { Gamepad2, Github, Globe, Sparkles, Heart, ExternalLink, Terminal } from 'lucide-react';
+import { Gamepad2, Sparkles, Heart, Zap, Shield, Trophy, Cpu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
-  const socialLinks = [
-    { icon: Github, href: 'https://github.com/TejaPriyan', label: 'GitHub', color: 'hover:text-accent-cyan' },
-    { icon: Globe, href: 'https://portfoliotejapriyan.vercel.app/', label: 'Portfolio', color: 'hover:text-accent-magenta' },
-    { icon: Sparkles, href: 'https://github.com/TejaPriyan/Gamehub', label: 'Gamehub Repo', color: 'hover:text-accent-purple' },
+  const arcadeHighlights = [
+    { icon: Zap, label: '120 FPS Engine', desc: 'Hardware Accelerated' },
+    { icon: Trophy, label: '8 Arcade Games', desc: 'Instant In-Browser' },
+    { icon: Shield, label: '3D Holographic Cards', desc: 'Identity System' },
+    { icon: Cpu, label: 'Web Audio Synth', desc: 'Zero-Latency Audio' },
   ];
 
   const footerLinks = [
@@ -21,6 +22,8 @@ export default function Footer() {
         { label: 'Hexa Matrix (Puzzle)', href: '#games' },
         { label: 'Cyber Slash (Reflex)', href: '#games' },
         { label: 'Grav-Runner (Platformer)', href: '#games' },
+        { label: 'Cyber Invaders (Space)', href: '#games' },
+        { label: 'Neon Lightcycle (Grid)', href: '#games' },
       ],
     },
     {
@@ -29,15 +32,16 @@ export default function Footer() {
         { label: 'Forge Player Identity', href: '#hero' },
         { label: '3D Holographic Tilt', href: '#hero' },
         { label: 'Download Card PNG', href: '#hero' },
-        { label: 'Share Gamer Tag', href: '#hero' },
+        { label: 'Custom Stat Sliders', href: '#hero' },
       ],
     },
     {
-      title: 'ECOSYSTEM',
+      title: 'ARCADE PROTOCOL',
       links: [
-        { label: 'Teja Priyan Portfolio', href: 'https://portfoliotejapriyan.vercel.app/' },
-        { label: 'GitHub Repositories', href: 'https://github.com/TejaPriyan' },
-        { label: 'AI Workspace', href: 'https://github.com/TejaPriyan/TejapriyanAI' },
+        { label: 'Keyboard & Touch Support', href: '#games' },
+        { label: 'Fullscreen Arena Mode', href: '#games' },
+        { label: 'Local High Score Saves', href: '#games' },
+        { label: 'Anti-Scroll Input Lock', href: '#games' },
       ],
     },
   ];
@@ -67,22 +71,22 @@ export default function Footer() {
             </Link>
 
             <p className="font-paragraph text-sm text-light-foreground/75 max-w-md leading-relaxed">
-              High-performance cyberpunk browser arcade and operative card generator. Built with Astro, React, Framer Motion, and Web Audio API by Teja Priyan.
+              Cyberpunk browser gaming arena with 8 responsive HTML5 canvas games, real-time Web Audio synthesis, 3D holographic player cards, and immersive fullscreen gameplay.
             </p>
 
-            {/* Social & Official Links */}
-            <div className="flex items-center gap-3 pt-2">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-3 rounded-xl bg-white/5 border border-white/10 ${social.color} transition-all duration-300 hover:scale-105 hover:border-accent-cyan/50 hover:shadow-[0_0_15px_rgba(0,255,255,0.25)]`}
-                  title={social.label}
+            {/* Arcade Specs Pills */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              {arcadeHighlights.map((spec) => (
+                <div
+                  key={spec.label}
+                  className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 font-mono text-xs"
                 >
-                  <social.icon className="w-5 h-5" />
-                </a>
+                  <spec.icon className="w-4 h-4 text-accent-cyan" />
+                  <div>
+                    <div className="text-light-foreground font-bold">{spec.label}</div>
+                    <div className="text-[10px] text-light-foreground/50">{spec.desc}</div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -118,10 +122,9 @@ export default function Footer() {
             </p>
 
             <div className="flex items-center gap-2">
-              <span>Engineered by</span>
-              <span className="text-accent-cyan font-bold">Teja Priyan</span>
-              <span>with</span>
+              <span>Cyberpunk Gaming Hub</span>
               <Heart className="w-3.5 h-3.5 text-accent-magenta fill-accent-magenta animate-pulse" />
+              <span>Full Screen & Touch Enabled</span>
             </div>
 
             <div className="flex items-center gap-4">

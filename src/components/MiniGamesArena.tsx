@@ -74,8 +74,8 @@ export default function MiniGamesArena({ playSound }: MiniGamesArenaProps) {
   const filteredGames = games.filter((game) => {
     const matchesCategory =
       selectedCategory === 'ALL' ||
-      (selectedCategory === 'RUNNER' && (game.genre?.toLowerCase().includes('run') || game.genre?.toLowerCase().includes('race') || game.genre?.toLowerCase().includes('speed'))) ||
-      (selectedCategory === 'SHOOTER' && (game.genre?.toLowerCase().includes('shoot') || game.genre?.toLowerCase().includes('orbital') || game.genre?.toLowerCase().includes('action'))) ||
+      (selectedCategory === 'RUNNER' && (game.genre?.toLowerCase().includes('run') || game.genre?.toLowerCase().includes('race') || game.genre?.toLowerCase().includes('speed') || game.genre?.toLowerCase().includes('drift') || game.genre?.toLowerCase().includes('cycle'))) ||
+      (selectedCategory === 'SHOOTER' && (game.genre?.toLowerCase().includes('shoot') || game.genre?.toLowerCase().includes('orbital') || game.genre?.toLowerCase().includes('action') || game.genre?.toLowerCase().includes('invad') || game.genre?.toLowerCase().includes('arcade'))) ||
       (selectedCategory === 'PUZZLE' && (game.genre?.toLowerCase().includes('puzzle') || game.genre?.toLowerCase().includes('match') || game.genre?.toLowerCase().includes('matrix'))) ||
       (selectedCategory === 'REFLEX' && (game.genre?.toLowerCase().includes('reflex') || game.genre?.toLowerCase().includes('slice') || game.genre?.toLowerCase().includes('gravity')));
 
@@ -126,7 +126,7 @@ export default function MiniGamesArena({ playSound }: MiniGamesArenaProps) {
         </h2>
 
         <p className="font-paragraph text-base md:text-xl text-light-foreground/75 max-w-3xl mx-auto leading-relaxed">
-          6 custom-built HTML5 cyber challenges. Test your reflexes, dominate high-score leaderboards, and master the digital realm with real-time sound, particle physics, and zero lag.
+          8 custom-built HTML5 cyber challenges. Test your reflexes, dominate high-score leaderboards, and master the digital realm with real-time sound, particle physics, and zero lag.
         </p>
 
         {/* Filter Bar & Search */}

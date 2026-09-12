@@ -10,8 +10,12 @@ import {
   Play,
   Heart,
   Zap,
+  Maximize2,
+  Minimize2,
   ChevronLeft, 
-  ChevronRight 
+  ChevronRight,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { MiniGames } from '@/entities';
 
@@ -52,6 +56,47 @@ class CyberAudioSynth {
     osc.stop(this.ctx.currentTime + 0.16);
   }
 
+  alienLaser() {
+    if (!this.enabled) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.12);
+
+    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.13);
+  }
+
+  ufoSiren() {
+    if (!this.enabled) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(900, this.ctx.currentTime + 0.1);
+    osc.frequency.linearRampToValueAtTime(600, this.ctx.currentTime + 0.2);
+
+    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.21);
+  }
+
   explosion() {
     if (!this.enabled) return;
     this.initCtx();
@@ -73,7 +118,7 @@ class CyberAudioSynth {
     filter.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.3);
 
     const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+    gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
 
     noise.connect(filter);
@@ -194,7 +239,9 @@ interface GameCanvasProps {
 }
 
 export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [highScore, setHighScore] = useState(0);
@@ -202,7 +249,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
   const [soundMuted, setSoundMuted] = useState(false);
   const [overdrivePercent, setOverdrivePercent] = useState(0);
   const [lives, setLives] = useState(3);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const gameStateRef = useRef<any>(null);
   const inputBridgeRef = useRef<{ triggerAction: (action: string) => void }>({
@@ -217,11 +264,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       const saved = localStorage.getItem(`cyber_highscore_${gameId}`);
       if (saved) setHighScore(parseInt(saved, 10));
     } catch {}
-
-    // Check touch support
-    if (typeof window !== 'undefined') {
-      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
-    }
   }, [gameId]);
 
   const updateHighScore = useCallback((newScore: number) => {
@@ -243,6 +285,79 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     playSound('click');
   };
 
+  // True Fullscreen Mode Toggle
+  const toggleFullscreen = () => {
+    playSound('click');
+    if (!isFullscreen) {
+      setIsFullscreen(true);
+      if (containerRef.current?.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(() => {});
+      }
+    } else {
+      setIsFullscreen(false);
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  };
+
+  // Sync with document fullscreenchange (e.g. if user hits ESC)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, [isFullscreen]);
+
+  // Anti-scroll Keyboard & Mouse Interceptor
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const preventKeys = [
+        'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 
+        ' ', 'Spacebar', 
+        'w', 'W', 's', 'S', 'a', 'A', 'd', 'D'
+      ];
+      if (preventKeys.includes(e.key)) {
+        const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea') {
+          e.preventDefault();
+        }
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea') {
+          e.preventDefault();
+          toggleFullscreen();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, { passive: false });
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
+  // Prevent scroll wheel and drag scroll over canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const preventScroll = (e: Event) => {
+      e.preventDefault();
+    };
+
+    canvas.addEventListener('wheel', preventScroll, { passive: false });
+    canvas.addEventListener('touchmove', preventScroll, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('wheel', preventScroll);
+      canvas.removeEventListener('touchmove', preventScroll);
+    };
+  }, []);
+
+  // Initialize and scale Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -250,7 +365,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Handle high DPI crispness
     const resizeCanvas = () => {
       const rect = canvas.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -261,9 +375,12 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize the specific game engine
     const id = gameId.toLowerCase();
-    if (id.includes('vortex') || id.includes('cyber-strike')) {
+    if (id.includes('invad') || id.includes('strike-swarm')) {
+      initCyberInvaders(canvas, ctx);
+    } else if (id.includes('lightcycle') || id.includes('cycle') || id.includes('snake')) {
+      initLightcycle(canvas, ctx);
+    } else if (id.includes('vortex') || id.includes('cyber-strike')) {
       initVortexDefender(canvas, ctx);
     } else if (id.includes('drift') || id.includes('quantum-velocity')) {
       initQuantumDrift(canvas, ctx);
@@ -274,7 +391,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     } else if (id.includes('grav') || id.includes('grid-breaker')) {
       initGravRunner(canvas, ctx);
     } else {
-      // Default: Neon Pulse Hyper Dash
       initNeonPulse(canvas, ctx);
     }
 
@@ -284,7 +400,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         gameStateRef.current.cleanup();
       }
     };
-  }, [gameId]);
+  }, [gameId, isFullscreen]);
 
   /* =========================================================================
      GAME 1: NEON PULSE (Hyper Rhythm & Lane Dash)
@@ -295,7 +411,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     let height = canvas.clientHeight;
 
     const numLanes = 5;
-    let currentLane = 2; // 0 to 4
     let targetLane = 2;
     let lanePos = 2;
 
@@ -319,7 +434,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
 
     let curScore = 0;
     let combo = 0;
-    let overdrive = 0; // 0 to 100
+    let overdrive = 0;
     let isOverdriveActive = false;
     let overdriveTimer = 0;
     let speed = 6;
@@ -334,7 +449,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     const activateOverdrive = () => {
       if (overdrive >= 100 && !isOverdriveActive) {
         isOverdriveActive = true;
-        overdriveTimer = 300; // ~5 seconds at 60fps
+        overdriveTimer = 300;
         audioSynth.overdrive();
       }
     };
@@ -385,11 +500,9 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       width = canvas.clientWidth;
       height = canvas.clientHeight;
 
-      // Dark futuristic background
       ctx.fillStyle = isOverdriveActive ? 'rgba(35, 10, 45, 0.4)' : 'rgba(10, 10, 24, 0.35)';
       ctx.fillRect(0, 0, width, height);
 
-      // Draw futuristic perspective lanes
       const laneWidth = width / numLanes;
       for (let i = 0; i <= numLanes; i++) {
         const lx = i * laneWidth;
@@ -401,12 +514,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         ctx.stroke();
       }
 
-      // Smooth lane movement
       lanePos += (targetLane - lanePos) * 0.25;
       const playerX = getLaneX(lanePos);
       const playerY = height - 90;
 
-      // Update overdrive
       if (isOverdriveActive) {
         overdriveTimer--;
         overdrive = Math.max(0, (overdriveTimer / 300) * 100);
@@ -416,20 +527,17 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         }
       }
 
-      // Spawn items
       if (Date.now() - lastSpawn > Math.max(450, 1100 - speed * 40)) {
         spawnItem();
         lastSpawn = Date.now();
         speed = Math.min(14, speed + 0.02);
       }
 
-      // Update & Draw Items
       for (let i = items.length - 1; i >= 0; i--) {
         const item = items[i];
         item.y += speed * (isOverdriveActive ? 1.4 : 1);
         const itemX = getLaneX(item.lane);
 
-        // Render item
         ctx.save();
         ctx.shadowBlur = 18;
         ctx.shadowColor = item.color;
@@ -451,7 +559,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
           ctx.arc(itemX, item.y, item.radius * 0.4, 0, Math.PI * 2);
           ctx.fill();
         } else {
-          // Quantum Star
           ctx.beginPath();
           ctx.arc(itemX, item.y, item.radius, 0, Math.PI * 2);
           ctx.fill();
@@ -461,14 +568,12 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         }
         ctx.restore();
 
-        // Collision Check
         const dist = Math.hypot(itemX - playerX, item.y - playerY);
         if (dist < 42 && !item.hit) {
           item.hit = true;
 
           if (item.type === 'barrier') {
             if (isOverdriveActive) {
-              // Destroy barrier!
               curScore += 250;
               audioSynth.explosion();
               for (let p = 0; p < 16; p++) {
@@ -484,7 +589,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
               items.splice(i, 1);
               continue;
             } else {
-              // Hit barrier -> Game Over
               audioSynth.gameOverSound();
               isDead = true;
               setGameOver(true);
@@ -512,7 +616,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
           }
         }
 
-        // Off screen cleanup
         if (item.y > height + 60) {
           if (item.type === 'barrier') {
             curScore += 15;
@@ -522,7 +625,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         }
       }
 
-      // Draw Particles
       for (let p = particles.length - 1; p >= 0; p--) {
         const pt = particles[p];
         pt.x += pt.vx;
@@ -535,16 +637,13 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         if (pt.life <= 0) particles.splice(p, 1);
       }
 
-      // Draw Player Cyber Pod
       if (!isDead) {
         ctx.save();
         ctx.shadowBlur = isOverdriveActive ? 30 : 18;
         ctx.shadowColor = isOverdriveActive ? '#FF00FF' : '#00FFFF';
 
-        // Hover effect bob
         const bob = Math.sin(Date.now() * 0.008) * 4;
 
-        // Pod Base
         ctx.fillStyle = isOverdriveActive ? '#FF00FF' : '#00FFFF';
         ctx.beginPath();
         ctx.moveTo(playerX, playerY - 26 + bob);
@@ -554,13 +653,11 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         ctx.closePath();
         ctx.fill();
 
-        // Pod Cockpit
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
         ctx.ellipse(playerX, playerY + bob, 8, 14, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Jet thruster flames
         ctx.fillStyle = isOverdriveActive ? '#FFDD00' : '#00AAFF';
         ctx.beginPath();
         ctx.moveTo(playerX - 10, playerY + 18 + bob);
@@ -644,7 +741,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         empCharge = 0;
         shockwaves.push({ radius: 10, maxRadius: Math.max(width, height), alpha: 1 });
         audioSynth.overdrive();
-        // Vaporize all enemies
         enemies.forEach((en) => {
           curScore += 150;
           for (let p = 0; p < 8; p++) {
@@ -691,7 +787,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ctx.fillStyle = 'rgba(12, 12, 28, 0.35)';
       ctx.fillRect(0, 0, width, height);
 
-      // Radar rings
       ctx.strokeStyle = 'rgba(0, 255, 255, 0.08)';
       [80, 160, 240, 320].forEach((r) => {
         ctx.beginPath();
@@ -699,7 +794,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         ctx.stroke();
       });
 
-      // Spawn Enemies from outside canvas
       if (Date.now() - lastSpawn > 900) {
         const angle = Math.random() * Math.PI * 2;
         const spawnDist = Math.hypot(cx, cy) + 40;
@@ -722,7 +816,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         lastSpawn = Date.now();
       }
 
-      // Update Bullets
       for (let b = bullets.length - 1; b >= 0; b--) {
         const bul = bullets[b];
         bul.x += bul.vx;
@@ -736,7 +829,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         ctx.arc(bul.x, bul.y, 4, 0, Math.PI * 2);
         ctx.fill();
 
-        // Check bullet vs enemy collision
         let hit = false;
         for (let e = enemies.length - 1; e >= 0; e--) {
           const en = enemies[e];
@@ -766,7 +858,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         if (hit || bul.life <= 0) bullets.splice(b, 1);
       }
 
-      // Update & Draw Enemies
       for (let e = enemies.length - 1; e >= 0; e--) {
         const en = enemies[e];
         en.x += en.vx;
@@ -781,7 +872,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         ctx.fill();
         ctx.restore();
 
-        // Hit Central Core
         if (Math.hypot(en.x - cx, en.y - cy) < en.radius + 28) {
           coreHealth -= en.type === 'heavy' ? 25 : 10;
           audioSynth.explosion();
@@ -795,7 +885,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         }
       }
 
-      // Draw Shockwaves
       for (let s = shockwaves.length - 1; s >= 0; s--) {
         const sw = shockwaves[s];
         sw.radius += 20;
@@ -810,7 +899,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         if (sw.alpha <= 0) shockwaves.splice(s, 1);
       }
 
-      // Draw Particles
       for (let p = particles.length - 1; p >= 0; p--) {
         const pt = particles[p];
         pt.x += pt.vx;
@@ -823,7 +911,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         if (pt.life <= 0) particles.splice(p, 1);
       }
 
-      // Draw Central Core
       ctx.save();
       ctx.shadowBlur = 24;
       ctx.shadowColor = '#00FFFF';
@@ -835,14 +922,12 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ctx.fill();
       ctx.stroke();
 
-      // Core Health Meter Ring
       ctx.strokeStyle = coreHealth > 40 ? '#00FFFF' : '#FF0055';
       ctx.lineWidth = 6;
       ctx.beginPath();
       ctx.arc(cx, cy, 38, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * (coreHealth / 100)));
       ctx.stroke();
 
-      // Orbital Turret Cannon
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(turretAngle);
@@ -879,7 +964,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
 
     let carX = width / 2;
     let targetX = width / 2;
-    let speed = 220; // km/h
+    let speed = 220;
     let curScore = 0;
     let nitro = 0;
     let isNitro = false;
@@ -920,7 +1005,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ctx.fillStyle = '#0a0a1a';
       ctx.fillRect(0, 0, width, height);
 
-      // Perspective road
       const roadTopW = width * 0.3;
       const roadBottomW = width * 0.85;
       const horizonY = height * 0.25;
@@ -933,7 +1017,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ctx.lineTo(width / 2 - roadBottomW / 2, height);
       ctx.fill();
 
-      // Road boundary neon glow lines
       ctx.strokeStyle = isNitro ? '#FF00FF' : '#00FFFF';
       ctx.lineWidth = 4;
       ctx.shadowBlur = 16;
@@ -946,14 +1029,12 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Update Car Position
       carX += (targetX - carX) * 0.15;
       const minX = width / 2 - roadBottomW / 2 + 30;
       const maxX = width / 2 + roadBottomW / 2 - 30;
       carX = Math.max(minX, Math.min(maxX, carX));
       targetX = Math.max(minX, Math.min(maxX, targetX));
 
-      // Speed & Score
       speed = isNitro ? 380 : 240;
       curScore += Math.floor(speed / 30);
       setScore(curScore);
@@ -965,7 +1046,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         nitro = Math.min(100, nitro + 0.1);
       }
 
-      // Spawn Traffic
       if (Date.now() - lastSpawn > Math.max(400, 1100 - speed * 1.5)) {
         const laneOffset = (Math.random() - 0.5) * (roadBottomW * 0.6);
         traffic.push({
@@ -986,7 +1066,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         lastSpawn = Date.now();
       }
 
-      // Draw Nitro Pads
       for (let n = nitroPads.length - 1; n >= 0; n--) {
         const pad = nitroPads[n];
         pad.y += 8;
@@ -996,7 +1075,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         ctx.fillRect(pad.x - 16, pad.y, 32, 16);
         ctx.shadowBlur = 0;
 
-        // Collect Nitro
         if (Math.hypot(pad.x - carX, pad.y - (height - 80)) < 36) {
           nitro = 100;
           isNitro = true;
@@ -1007,11 +1085,9 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         }
       }
 
-      // Draw & Update Traffic
       for (let t = traffic.length - 1; t >= 0; t--) {
         const tr = traffic[t];
         tr.y += tr.speed * (isNitro ? 1.6 : 1.2);
-        // Expand as it gets closer for 3D illusion
         const scale = 0.5 + (tr.y / height) * 0.8;
         const w = tr.width * scale;
         const h = tr.height * scale;
@@ -1022,7 +1098,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         ctx.fillRect(tr.x - w / 2, tr.y, w, h);
         ctx.shadowBlur = 0;
 
-        // Collision Check
         const carY = height - 90;
         if (
           Math.abs(tr.x - carX) < (w / 2 + 20) &&
@@ -1038,7 +1113,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         if (tr.y > height + 60) traffic.splice(t, 1);
       }
 
-      // Draw Player Hover Car
       const carY = height - 90;
       ctx.save();
       ctx.shadowBlur = isNitro ? 35 : 20;
@@ -1046,12 +1120,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ctx.fillStyle = isNitro ? '#FF00FF' : '#00FFFF';
       ctx.fillRect(carX - 22, carY, 44, 60);
 
-      // Tail lights
       ctx.fillStyle = '#FF0055';
       ctx.fillRect(carX - 18, carY + 54, 10, 6);
       ctx.fillRect(carX + 8, carY + 54, 10, 6);
 
-      // Windshield
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(carX - 14, carY + 16, 28, 16);
       ctx.restore();
@@ -1079,7 +1151,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     let curScore = 0;
 
     const colors = ['#00FFFF', '#FF00FF', '#FFDD00', '#00FF66'];
-    let grid: Array<Array<{ angle: number; colorIndex: number; pulsing?: boolean }>> = [];
+    let grid: Array<Array<{ angle: number; colorIndex: number }>> = [];
 
     for (let r = 0; r < rows; r++) {
       grid[r] = [];
@@ -1105,7 +1177,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         grid[r][c].angle = (grid[r][c].angle + 90) % 360;
         audioSynth.pickup();
 
-        // Check for matching adjacent connections
         let matches = 0;
         if (c > 0 && grid[r][c].colorIndex === grid[r][c - 1].colorIndex) matches++;
         if (c < cols - 1 && grid[r][c].colorIndex === grid[r][c + 1].colorIndex) matches++;
@@ -1147,7 +1218,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
           ctx.strokeStyle = colors[cell.colorIndex];
           ctx.lineWidth = 6;
 
-          // Cross Laser Conduits
           ctx.beginPath();
           ctx.moveTo(-cellW * 0.35, 0);
           ctx.lineTo(cellW * 0.35, 0);
@@ -1155,7 +1225,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
           ctx.lineTo(0, cellH * 0.35);
           ctx.stroke();
 
-          // Center Node
           ctx.fillStyle = '#FFFFFF';
           ctx.beginPath();
           ctx.arc(0, 0, 8, 0, Math.PI * 2);
@@ -1207,7 +1276,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       bladeTrail.push({ x, y, time: Date.now() });
       if (bladeTrail.length > 20) bladeTrail.shift();
 
-      // Check collision with airborne items
       for (let i = items.length - 1; i >= 0; i--) {
         const item = items[i];
         if (!item.sliced && Math.hypot(item.x - x, item.y - y) < item.radius + 15) {
@@ -1259,7 +1327,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ctx.fillStyle = 'rgba(10, 10, 26, 0.4)';
       ctx.fillRect(0, 0, width, height);
 
-      // Spawn packets upwards
       if (Date.now() - lastSpawn > 800) {
         const isGlitch = Math.random() < 0.25;
         items.push({
@@ -1274,12 +1341,11 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         lastSpawn = Date.now();
       }
 
-      // Update & Draw Packets with Gravity
       for (let i = items.length - 1; i >= 0; i--) {
         const it = items[i];
         it.x += it.vx;
         it.y += it.vy;
-        it.vy += 0.35; // Gravity pull
+        it.vy += 0.35;
 
         ctx.save();
         ctx.shadowBlur = 18;
@@ -1293,7 +1359,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         if (it.y > height + 80 && it.vy > 0) items.splice(i, 1);
       }
 
-      // Draw Laser Blade Trail
       const now = Date.now();
       bladeTrail = bladeTrail.filter((p) => now - p.time < 200);
       if (bladeTrail.length > 1) {
@@ -1334,14 +1399,14 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     let width = canvas.clientWidth;
     let height = canvas.clientHeight;
 
-    let gravity = 1; // 1 = floor, -1 = ceiling
+    let gravity = 1;
     let playerY = height - 60;
     const playerX = 120;
     let curScore = 0;
     let speed = 6;
 
     let obstacles: Array<{ x: number; y: number; width: number; height: number; side: 'floor' | 'ceil' }> = [];
-    let crystals: Array<{ x: number; y: number; collected?: boolean }> = [];
+    let crystals: Array<{ x: number; y: number }> = [];
     let lastSpawn = Date.now();
 
     const flipGravity = () => {
@@ -1369,20 +1434,18 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ctx.fillStyle = '#0e0e22';
       ctx.fillRect(0, 0, width, height);
 
-      // Rails
       ctx.strokeStyle = '#00FFFF';
       ctx.lineWidth = 6;
       ctx.shadowBlur = 15;
       ctx.shadowColor = '#00FFFF';
       ctx.beginPath();
       ctx.moveTo(0, 40);
-      ctx.lineTo(width, 40); // Ceiling
+      ctx.lineTo(width, 40);
       ctx.moveTo(0, height - 40);
-      ctx.lineTo(width, height - 40); // Floor
+      ctx.lineTo(width, height - 40);
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Player Movement
       const targetY = gravity === 1 ? height - 64 : 44;
       playerY += (targetY - playerY) * 0.25;
 
@@ -1390,7 +1453,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       setScore(curScore);
       speed = Math.min(13, speed + 0.003);
 
-      // Spawn Obstacles & Crystals
       if (Date.now() - lastSpawn > 900) {
         const side = Math.random() > 0.5 ? 'floor' : 'ceil';
         obstacles.push({
@@ -1410,7 +1472,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         lastSpawn = Date.now();
       }
 
-      // Draw Crystals
       for (let c = crystals.length - 1; c >= 0; c--) {
         const cr = crystals[c];
         cr.x -= speed;
@@ -1431,7 +1492,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         }
       }
 
-      // Draw Obstacles
       for (let o = obstacles.length - 1; o >= 0; o--) {
         const ob = obstacles[o];
         ob.x -= speed;
@@ -1441,7 +1501,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         ctx.shadowColor = '#FF0055';
         ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
 
-        // Check Collision
         if (
           Math.abs(ob.x - playerX) < 26 &&
           Math.abs((ob.y + ob.height / 2) - playerY) < 28
@@ -1456,7 +1515,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         if (ob.x < -60) obstacles.splice(o, 1);
       }
 
-      // Draw Player Runner
       ctx.save();
       ctx.shadowBlur = 20;
       ctx.shadowColor = '#00FFFF';
@@ -1478,6 +1536,456 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
   };
 
+  /* =========================================================================
+     GAME 7: CYBER INVADERS (Neon Space Defense)
+     ========================================================================= */
+  const initCyberInvaders = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+    let animId: number;
+    let width = canvas.clientWidth;
+    let height = canvas.clientHeight;
+
+    let playerX = width / 2;
+    const playerSpeed = 7;
+    let curScore = 0;
+    let curLives = 3;
+
+    let keys: Record<string, boolean> = {};
+
+    let bullets: Array<{ x: number; y: number }> = [];
+    let alienBullets: Array<{ x: number; y: number }> = [];
+
+    // Swarm grid setup: 4 rows x 7 cols
+    const alienRows = 4;
+    const alienCols = 7;
+    let aliens: Array<{ x: number; y: number; row: number; col: number; alive: boolean; color: string; score: number }> = [];
+
+    const initSwarm = () => {
+      aliens = [];
+      const rowColors = ['#FF0055', '#FF00FF', '#00FFFF', '#FFDD00'];
+      const rowScores = [40, 30, 20, 10];
+      for (let r = 0; r < alienRows; r++) {
+        for (let c = 0; c < alienCols; c++) {
+          aliens.push({
+            x: 50 + c * 55,
+            y: 70 + r * 45,
+            row: r,
+            col: c,
+            alive: true,
+            color: rowColors[r],
+            score: rowScores[r],
+          });
+        }
+      }
+    };
+    initSwarm();
+
+    let swarmDir = 1; // 1 = right, -1 = left
+    let swarmSpeed = 1.4;
+    let ufo: { x: number; y: number; speed: number; active: boolean } = { x: -60, y: 35, speed: 3, active: false };
+    let lastUfo = Date.now();
+    let lastAlienFire = Date.now();
+
+    // 3 Defensive Bunkers
+    let bunkers: Array<{ x: number; hp: number }> = [
+      { x: width * 0.25, hp: 10 },
+      { x: width * 0.5, hp: 10 },
+      { x: width * 0.75, hp: 10 },
+    ];
+
+    const fireBullet = () => {
+      if (bullets.length < 2) {
+        bullets.push({ x: playerX, y: height - 60 });
+        audioSynth.laser();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      keys[e.key] = true;
+      if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        fireBullet();
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      keys[e.key] = false;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    canvas.addEventListener('click', fireBullet);
+
+    inputBridgeRef.current.triggerAction = (action: string) => {
+      if (action === 'left') playerX -= 30;
+      if (action === 'right') playerX += 30;
+      if (action === 'action' || action === 'up') fireBullet();
+    };
+
+    const loop = () => {
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+
+      ctx.fillStyle = '#0a0a1a';
+      ctx.fillRect(0, 0, width, height);
+
+      // Player Movement
+      if (keys['ArrowLeft'] || keys['a'] || keys['A']) playerX -= playerSpeed;
+      if (keys['ArrowRight'] || keys['d'] || keys['D']) playerX += playerSpeed;
+      playerX = Math.max(30, Math.min(width - 30, playerX));
+
+      // UFO Mother-ship
+      if (!ufo.active && Date.now() - lastUfo > 16000) {
+        ufo = { x: -60, y: 35, speed: 3.5, active: true };
+        audioSynth.ufoSiren();
+        lastUfo = Date.now();
+      }
+      if (ufo.active) {
+        ufo.x += ufo.speed;
+        ctx.save();
+        ctx.fillStyle = '#FF0055';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#FF0055';
+        ctx.fillRect(ufo.x - 25, ufo.y - 8, 50, 16);
+        ctx.fillStyle = '#FFDD00';
+        ctx.fillRect(ufo.x - 12, ufo.y - 12, 24, 6);
+        ctx.restore();
+
+        if (ufo.x > width + 60) ufo.active = false;
+      }
+
+      // Move Swarm
+      let hitEdge = false;
+      const aliveAliens = aliens.filter((a) => a.alive);
+      if (aliveAliens.length === 0) {
+        // Next Wave!
+        initSwarm();
+        swarmSpeed += 0.4;
+        audioSynth.overdrive();
+      }
+
+      aliveAliens.forEach((a) => {
+        a.x += swarmDir * swarmSpeed;
+        if ((swarmDir === 1 && a.x > width - 50) || (swarmDir === -1 && a.x < 40)) {
+          hitEdge = true;
+        }
+      });
+
+      if (hitEdge) {
+        swarmDir *= -1;
+        aliveAliens.forEach((a) => {
+          a.y += 18;
+          if (a.y >= height - 90) {
+            audioSynth.gameOverSound();
+            setGameOver(true);
+            updateHighScore(curScore);
+            return;
+          }
+        });
+      }
+
+      // Alien Laser Fire
+      if (Date.now() - lastAlienFire > 900 && aliveAliens.length > 0) {
+        const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
+        alienBullets.push({ x: shooter.x, y: shooter.y + 12 });
+        audioSynth.alienLaser();
+        lastAlienFire = Date.now();
+      }
+
+      // Draw Aliens
+      aliveAliens.forEach((a) => {
+        ctx.save();
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = a.color;
+        ctx.fillStyle = a.color;
+        ctx.fillRect(a.x - 16, a.y - 12, 32, 24);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(a.x - 10, a.y - 6, 6, 6);
+        ctx.fillRect(a.x + 4, a.y - 6, 6, 6);
+        ctx.restore();
+      });
+
+      // Update & Draw Player Bullets
+      for (let b = bullets.length - 1; b >= 0; b--) {
+        const bul = bullets[b];
+        bul.y -= 12;
+
+        ctx.fillStyle = '#00FFFF';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00FFFF';
+        ctx.fillRect(bul.x - 2.5, bul.y - 10, 5, 14);
+
+        // Check vs UFO
+        if (ufo.active && Math.hypot(bul.x - ufo.x, bul.y - ufo.y) < 30) {
+          ufo.active = false;
+          curScore += 500;
+          setScore(curScore);
+          audioSynth.explosion();
+          bullets.splice(b, 1);
+          continue;
+        }
+
+        // Check vs Aliens
+        let hit = false;
+        for (let a of aliveAliens) {
+          if (Math.abs(bul.x - a.x) < 20 && Math.abs(bul.y - a.y) < 16) {
+            a.alive = false;
+            curScore += a.score;
+            setScore(curScore);
+            audioSynth.explosion();
+            hit = true;
+            break;
+          }
+        }
+        if (hit || bul.y < 0) bullets.splice(b, 1);
+      }
+
+      // Update & Draw Alien Bullets
+      for (let ab = alienBullets.length - 1; ab >= 0; ab--) {
+        const abul = alienBullets[ab];
+        abul.y += 6;
+
+        ctx.fillStyle = '#FF0055';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#FF0055';
+        ctx.fillRect(abul.x - 2, abul.y, 4, 12);
+
+        // Check vs Bunkers
+        let bunkerHit = false;
+        bunkers.forEach((bk) => {
+          if (bk.hp > 0 && Math.abs(abul.x - bk.x) < 35 && Math.abs(abul.y - (height - 110)) < 15) {
+            bk.hp--;
+            bunkerHit = true;
+            audioSynth.explosion();
+          }
+        });
+        if (bunkerHit) {
+          alienBullets.splice(ab, 1);
+          continue;
+        }
+
+        // Check vs Player
+        if (Math.abs(abul.x - playerX) < 22 && Math.abs(abul.y - (height - 50)) < 16) {
+          audioSynth.explosion();
+          curLives--;
+          setLives(curLives);
+          alienBullets.splice(ab, 1);
+          if (curLives <= 0) {
+            audioSynth.gameOverSound();
+            setGameOver(true);
+            updateHighScore(curScore);
+            return;
+          }
+          continue;
+        }
+
+        if (abul.y > height + 20) alienBullets.splice(ab, 1);
+      }
+
+      // Draw Energy Bunkers
+      bunkers.forEach((bk) => {
+        if (bk.hp > 0) {
+          ctx.save();
+          ctx.fillStyle = `rgba(0, 255, 255, ${bk.hp * 0.1})`;
+          ctx.strokeStyle = '#00FFFF';
+          ctx.lineWidth = 2;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#00FFFF';
+          ctx.fillRect(bk.x - 30, height - 120, 60, 24);
+          ctx.strokeRect(bk.x - 30, height - 120, 60, 24);
+          ctx.restore();
+        }
+      });
+
+      // Draw Player Cannon
+      ctx.save();
+      ctx.fillStyle = '#00FF66';
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = '#00FF66';
+      ctx.fillRect(playerX - 22, height - 48, 44, 18);
+      ctx.fillRect(playerX - 5, height - 60, 10, 14);
+      ctx.restore();
+
+      animId = requestAnimationFrame(loop);
+    };
+
+    animId = requestAnimationFrame(loop);
+
+    gameStateRef.current = {
+      cleanup: () => {
+        cancelAnimationFrame(animId);
+        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('keyup', handleKeyUp);
+        canvas.removeEventListener('click', fireBullet);
+      },
+    };
+  };
+
+  /* =========================================================================
+     GAME 8: NEON LIGHTCYCLE (Grid Surfer / Snake Racer)
+     ========================================================================= */
+  const initLightcycle = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+    let animId: number;
+    let width = canvas.clientWidth;
+    let height = canvas.clientHeight;
+
+    const gridSize = 16;
+    let cycleX = Math.floor((width / 2) / gridSize) * gridSize;
+    let cycleY = Math.floor((height / 2) / gridSize) * gridSize;
+    let dir = { x: gridSize, y: 0 };
+    let nextDir = { x: gridSize, y: 0 };
+
+    let trail: Array<{ x: number; y: number }> = [];
+    let curScore = 0;
+    let speedMs = 70;
+    let lastMove = Date.now();
+    let isTurbo = false;
+
+    let chip = { x: 0, y: 0 };
+    const spawnChip = () => {
+      chip = {
+        x: Math.floor(Math.random() * (width / gridSize - 4) + 2) * gridSize,
+        y: Math.floor(Math.random() * (height / gridSize - 4) + 2) * gridSize,
+      };
+    };
+    spawnChip();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && dir.y === 0) {
+        nextDir = { x: 0, y: -gridSize };
+      } else if ((e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') && dir.y === 0) {
+        nextDir = { x: 0, y: gridSize };
+      } else if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && dir.x === 0) {
+        nextDir = { x: -gridSize, y: 0 };
+      } else if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && dir.x === 0) {
+        nextDir = { x: gridSize, y: 0 };
+      } else if (e.key === ' ') {
+        isTurbo = true;
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === ' ') isTurbo = false;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    inputBridgeRef.current.triggerAction = (action: string) => {
+      if (action === 'up' && dir.y === 0) nextDir = { x: 0, y: -gridSize };
+      if (action === 'down' && dir.y === 0) nextDir = { x: 0, y: gridSize };
+      if (action === 'left' && dir.x === 0) nextDir = { x: -gridSize, y: 0 };
+      if (action === 'right' && dir.x === 0) nextDir = { x: gridSize, y: 0 };
+      if (action === 'action') isTurbo = !isTurbo;
+    };
+
+    const loop = () => {
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+
+      const currentStep = isTurbo ? speedMs * 0.5 : speedMs;
+      if (Date.now() - lastMove > currentStep) {
+        dir = nextDir;
+        trail.push({ x: cycleX, y: cycleY });
+
+        cycleX += dir.x;
+        cycleY += dir.y;
+        lastMove = Date.now();
+
+        // Boundary Crash Check
+        if (cycleX < 0 || cycleX >= width || cycleY < 0 || cycleY >= height) {
+          audioSynth.explosion();
+          audioSynth.gameOverSound();
+          setGameOver(true);
+          updateHighScore(curScore);
+          return;
+        }
+
+        // Self-Trail Crash Check
+        for (let i = 0; i < trail.length - 2; i++) {
+          if (trail[i].x === cycleX && trail[i].y === cycleY) {
+            audioSynth.explosion();
+            audioSynth.gameOverSound();
+            setGameOver(true);
+            updateHighScore(curScore);
+            return;
+          }
+        }
+
+        // Chip Collect
+        if (Math.hypot(cycleX - chip.x, cycleY - chip.y) < gridSize * 1.2) {
+          curScore += 150;
+          setScore(curScore);
+          audioSynth.pickup();
+          spawnChip();
+          speedMs = Math.max(35, speedMs - 1.5);
+        }
+      }
+
+      // Draw Grid Mainframe
+      ctx.fillStyle = '#080816';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < width; x += gridSize * 2) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += gridSize * 2) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Draw Laser Trail Ribbon
+      ctx.save();
+      ctx.strokeStyle = isTurbo ? '#FF00FF' : '#00FFFF';
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = isTurbo ? '#FF00FF' : '#00FFFF';
+      ctx.lineWidth = gridSize - 4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (trail.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(trail[0].x + gridSize / 2, trail[0].y + gridSize / 2);
+        for (let i = 1; i < trail.length; i++) {
+          ctx.lineTo(trail[i].x + gridSize / 2, trail[i].y + gridSize / 2);
+        }
+        ctx.lineTo(cycleX + gridSize / 2, cycleY + gridSize / 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Draw Data Chip
+      ctx.save();
+      ctx.fillStyle = '#FFDD00';
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = '#FFDD00';
+      ctx.fillRect(chip.x + 2, chip.y + 2, gridSize - 4, gridSize - 4);
+      ctx.restore();
+
+      // Draw Lightcycle Head
+      ctx.save();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = isTurbo ? '#FF00FF' : '#00FFFF';
+      ctx.fillRect(cycleX + 1, cycleY + 1, gridSize - 2, gridSize - 2);
+      ctx.restore();
+
+      animId = requestAnimationFrame(loop);
+    };
+
+    animId = requestAnimationFrame(loop);
+
+    gameStateRef.current = {
+      cleanup: () => {
+        cancelAnimationFrame(animId);
+        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('keyup', handleKeyUp);
+      },
+    };
+  };
+
   const handleRestart = () => {
     playSound('click');
     setScore(0);
@@ -1495,7 +2003,11 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       const ctx = canvas.getContext('2d');
       if (ctx) {
         const id = gameId.toLowerCase();
-        if (id.includes('vortex') || id.includes('cyber-strike')) {
+        if (id.includes('invad') || id.includes('strike-swarm')) {
+          initCyberInvaders(canvas, ctx);
+        } else if (id.includes('lightcycle') || id.includes('cycle') || id.includes('snake')) {
+          initLightcycle(canvas, ctx);
+        } else if (id.includes('vortex') || id.includes('cyber-strike')) {
           initVortexDefender(canvas, ctx);
         } else if (id.includes('drift') || id.includes('quantum-velocity')) {
           initQuantumDrift(canvas, ctx);
@@ -1514,12 +2026,19 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
 
   return (
     <motion.div
-      className="relative w-full"
+      ref={containerRef}
+      className={`relative w-full transition-all ${
+        isFullscreen 
+          ? 'fixed inset-0 z-[9999] w-screen h-screen bg-[#070716] p-3 md:p-6 flex flex-col justify-between overflow-hidden' 
+          : ''
+      }`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <div className="relative p-4 md:p-6 rounded-2xl bg-dark-background/90 backdrop-blur-xl border-2 border-accent-cyan/30 shadow-[0_0_40px_rgba(0,255,255,0.15)]">
+      <div className={`relative p-4 md:p-6 rounded-2xl bg-dark-background/90 backdrop-blur-xl border-2 border-accent-cyan/30 shadow-[0_0_40px_rgba(0,255,255,0.15)] flex flex-col ${
+        isFullscreen ? 'h-full border-accent-magenta/50 shadow-[0_0_80px_rgba(255,0,255,0.25)]' : ''
+      }`}>
         {/* Game Top HUD */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-accent-cyan/20">
           <div className="flex flex-wrap items-center gap-3">
@@ -1543,7 +2062,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
                 <span>OVERDRIVE {overdrivePercent}%</span>
               </div>
             )}
-            {(gameId.includes('slash') || gameId.includes('laser')) && (
+            {(gameId.includes('slash') || gameId.includes('laser') || gameId.includes('invad')) && (
               <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-400 font-mono text-xs font-bold">
                 <Heart className="w-3 h-3 fill-current" />
                 <span>LIVES: {lives}</span>
@@ -1552,6 +2071,16 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Fullscreen Button */}
+            <button
+              onClick={toggleFullscreen}
+              className="px-3 py-1.5 rounded-lg bg-accent-cyan/15 border border-accent-cyan/40 text-accent-cyan hover:bg-accent-cyan hover:text-dark-background transition-colors flex items-center gap-1.5 font-mono text-xs font-bold"
+              title="Toggle Fullscreen Mode (Press F)"
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              <span className="hidden sm:inline">{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
+            </button>
+
             <button
               onClick={() => setIsPaused(!isPaused)}
               className="p-2 rounded-lg bg-white/5 border border-white/10 text-light-foreground/80 hover:text-accent-cyan hover:border-accent-cyan transition-colors"
@@ -1576,6 +2105,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
             <button
               onClick={() => {
                 playSound('click');
+                if (isFullscreen) toggleFullscreen();
                 onExit();
               }}
               className="p-2 rounded-lg bg-accent-magenta/20 border border-accent-magenta/40 text-accent-magenta hover:bg-accent-magenta/40 transition-colors"
@@ -1586,12 +2116,19 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
           </div>
         </div>
 
-        {/* Game Canvas Container */}
-        <div className="relative rounded-xl overflow-hidden border border-accent-cyan/30 bg-[#0c0c1c]">
+        {/* Game Canvas Container - Scroll Protected */}
+        <div className={`relative rounded-xl overflow-hidden border border-accent-cyan/30 bg-[#0c0c1c] ${
+          isFullscreen ? 'flex-1 w-full min-h-0' : ''
+        }`}>
           <canvas
             ref={canvasRef}
             className="w-full block touch-none cursor-crosshair"
-            style={{ height: '560px' }}
+            style={{ 
+              height: isFullscreen ? '100%' : '560px',
+              touchAction: 'none',
+              overscrollBehavior: 'contain',
+              userSelect: 'none'
+            }}
           />
 
           {/* Game Over Screen */}
@@ -1632,32 +2169,46 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
           )}
         </div>
 
-        {/* On-Screen Mobile Virtual Controls */}
-        <div className="mt-4 pt-2 flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-light-foreground/70">
+        {/* On-Screen Mobile Virtual Controls with Zero Scroll Interference */}
+        <div className="mt-4 pt-2 flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-light-foreground/70 select-none">
           <div className="flex items-center gap-2">
             <span className="text-accent-cyan font-bold">CONTROLS:</span>
-            <span>Keyboard (Arrow keys / WASD / Spacebar) or Mouse / Touch</span>
+            <span>Arrows / WASD / Spacebar / Touch Buttons • Press [F] for Fullscreen</span>
           </div>
 
-          {/* Virtual Buttons for Touch/Mobile */}
+          {/* Virtual Directional and Action Buttons */}
           <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
             <button
               onClick={() => inputBridgeRef.current.triggerAction('left')}
-              className="p-3 bg-white/10 rounded-xl active:bg-accent-cyan/30 text-accent-cyan border border-white/10"
+              className="p-3 bg-white/10 rounded-xl active:bg-accent-cyan/30 text-accent-cyan border border-white/10 hover:border-accent-cyan"
               title="Steer Left"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
+              onClick={() => inputBridgeRef.current.triggerAction('up')}
+              className="p-3 bg-white/10 rounded-xl active:bg-accent-cyan/30 text-accent-cyan border border-white/10 hover:border-accent-cyan"
+              title="Up / Fire"
+            >
+              <ChevronUp className="w-5 h-5" />
+            </button>
+            <button
               onClick={() => inputBridgeRef.current.triggerAction('action')}
               className="px-5 py-3 bg-accent-magenta/20 rounded-xl active:bg-accent-magenta/40 text-accent-magenta border border-accent-magenta/40 font-bold"
-              title="Action / Overdrive / Jump / Fire"
+              title="Action / Boost / Fire"
             >
-              ACTION / BOOST
+              ACTION
+            </button>
+            <button
+              onClick={() => inputBridgeRef.current.triggerAction('down')}
+              className="p-3 bg-white/10 rounded-xl active:bg-accent-cyan/30 text-accent-cyan border border-white/10 hover:border-accent-cyan"
+              title="Down"
+            >
+              <ChevronDown className="w-5 h-5" />
             </button>
             <button
               onClick={() => inputBridgeRef.current.triggerAction('right')}
-              className="p-3 bg-white/10 rounded-xl active:bg-accent-cyan/30 text-accent-cyan border border-white/10"
+              className="p-3 bg-white/10 rounded-xl active:bg-accent-cyan/30 text-accent-cyan border border-white/10 hover:border-accent-cyan"
               title="Steer Right"
             >
               <ChevronRight className="w-5 h-5" />

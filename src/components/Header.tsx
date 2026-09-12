@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Menu, X, Sparkles, Activity, Shield } from 'lucide-react';
+import { Gamepad2, Menu, X, Sparkles, Activity, Shield, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface HeaderProps {
@@ -70,40 +70,32 @@ export default function Header({ playSound }: HeaderProps) {
               <span className="w-2 h-2 rounded-full bg-accent-cyan animate-ping" />
               <span className="text-accent-cyan font-bold">120 FPS</span>
               <span className="text-light-foreground/30">//</span>
-              <span>ARENA ONLINE</span>
+              <span>8 ARENA GAMES LIVE</span>
             </div>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Cleaned of external portfolio/github */}
           <nav className="hidden md:flex items-center gap-6">
-            <button
-              onClick={() => scrollToSection('hero')}
-              onMouseEnter={() => playSound('hover')}
-              className="font-mono text-xs uppercase tracking-wider text-light-foreground/75 hover:text-accent-cyan transition-colors py-1 relative group"
-            >
-              Command
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-accent-cyan group-hover:w-full transition-all duration-300" />
-            </button>
             <button
               onClick={() => scrollToSection('games')}
               onMouseEnter={() => playSound('hover')}
-              className="font-mono text-xs uppercase tracking-wider text-light-foreground/75 hover:text-accent-magenta transition-colors py-1 relative group"
+              className="font-mono text-xs uppercase tracking-wider text-light-foreground/75 hover:text-accent-cyan transition-colors py-1 relative group flex items-center gap-1.5"
             >
+              <Trophy className="w-3.5 h-3.5 text-accent-cyan" />
               Battle Arena
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-accent-cyan group-hover:w-full transition-all duration-300" />
+            </button>
+            <button
+              onClick={() => scrollToSection('hero')}
+              onMouseEnter={() => playSound('hover')}
+              className="font-mono text-xs uppercase tracking-wider text-light-foreground/75 hover:text-accent-magenta transition-colors py-1 relative group flex items-center gap-1.5"
+            >
+              <Shield className="w-3.5 h-3.5 text-accent-magenta" />
+              Operative Card
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-accent-magenta group-hover:w-full transition-all duration-300" />
             </button>
-            <a
-              href="https://portfoliotejapriyan.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              onMouseEnter={() => playSound('hover')}
-              className="font-mono text-xs uppercase tracking-wider text-light-foreground/75 hover:text-accent-purple transition-colors py-1 relative group"
-            >
-              Portfolio
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-accent-purple group-hover:w-full transition-all duration-300" />
-            </a>
 
-            {/* Create Card Button */}
+            {/* Create Card CTA Button */}
             <button
               onClick={() => {
                 playSound('click');
@@ -144,25 +136,19 @@ export default function Header({ playSound }: HeaderProps) {
             transition={{ duration: 0.25 }}
           >
             <button
-              onClick={() => scrollToSection('hero')}
-              className="w-full text-left font-mono text-sm uppercase text-light-foreground/80 hover:text-accent-cyan py-2 border-b border-white/5"
+              onClick={() => scrollToSection('games')}
+              className="w-full text-left font-mono text-sm uppercase text-light-foreground/80 hover:text-accent-cyan py-2 border-b border-white/5 flex items-center gap-2"
             >
-              Command Center
+              <Trophy className="w-4 h-4 text-accent-cyan" />
+              Battle Arena (8 Playable Games)
             </button>
             <button
-              onClick={() => scrollToSection('games')}
-              className="w-full text-left font-mono text-sm uppercase text-light-foreground/80 hover:text-accent-magenta py-2 border-b border-white/5"
+              onClick={() => scrollToSection('hero')}
+              className="w-full text-left font-mono text-sm uppercase text-light-foreground/80 hover:text-accent-magenta py-2 border-b border-white/5 flex items-center gap-2"
             >
-              Battle Arena (6 Games)
+              <Shield className="w-4 h-4 text-accent-magenta" />
+              Forge Operative Card
             </button>
-            <a
-              href="https://portfoliotejapriyan.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full text-left font-mono text-sm uppercase text-light-foreground/80 hover:text-accent-purple py-2 border-b border-white/5"
-            >
-              Portfolio & Projects
-            </a>
             <button
               onClick={() => {
                 playSound('click');

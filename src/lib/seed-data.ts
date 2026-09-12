@@ -10,7 +10,6 @@ export interface ExtendedMiniGame extends MiniGames {
 }
 
 const gameImage = (file: string) => {
-  // Use relative path from root to ensure it resolves on both Vercel and local
   return `/images/games/${file}`;
 };
 
@@ -27,7 +26,7 @@ export const seedMiniGames: ExtendedMiniGame[] = [
     tagline: 'Dodge EMP waves, harvest overclock gems, and trigger rainbow warp overdrive!',
     gameDescription:
       'Surf across high-speed cyber lanes through the neon skyline. Dodge electromagnetic laser walls, collect energy chips, and unleash 5-second Overdrive invulnerability for massive score multipliers!',
-    controlsInfo: 'Arrows / A & D or Touch Lanes to switch lanes • Space or Tap Overdrive to trigger invincibility mode',
+    controlsInfo: 'Arrows / A & D or Touch Lanes to switch lanes • Space or Tap Overdrive for invincibility mode',
     playLink: '/game/neon-dash',
   },
   {
@@ -105,6 +104,36 @@ export const seedMiniGames: ExtendedMiniGame[] = [
     controlsInfo: 'SPACEBAR / Up Arrow / Tap Screen to flip gravity between floor & ceiling • Dodge obstacles on both sides',
     playLink: '/game/grid-breaker',
   },
+  {
+    _id: 'cyber-invaders',
+    gameTitle: 'Cyber Invaders: Neon Strike',
+    genre: 'Retro Arcade',
+    badge: 'ALIEN SWARM',
+    difficulty: 'HARDCORE',
+    rating: 4.9,
+    plays: '27.5K',
+    thumbnailImage: gameImage('cyber-strike.jpg'),
+    tagline: 'Defend the grid from descending waves of geometric alien cyber-drones.',
+    gameDescription:
+      'A neon-drenched re-imagining of classic space invasion! Command your mobile plasma cannon behind quantum energy shields. Blast marching alien drone battalions, intercept high-speed UFO motherships, and dodge descending photon bombs.',
+    controlsInfo: 'Left / Right Arrows or A & D to move cannon • Spacebar / Tap Screen to fire lasers • Take cover behind energy bunkers',
+    playLink: '/game/cyber-invaders',
+  },
+  {
+    _id: 'lightcycle',
+    gameTitle: 'Neon Lightcycle: Grid Surfer',
+    genre: 'Grid Racer',
+    badge: 'LIGHT TRAIL',
+    difficulty: 'EXTREME',
+    rating: 4.8,
+    plays: '21.3K',
+    thumbnailImage: gameImage('circuit-match.jpg'),
+    tagline: 'Navigate the high-voltage cyber grid leaving an electrifying light trail.',
+    gameDescription:
+      'Pilot an ultra-fast neon lightcycle across an infinite cyber mainframe. Turn at 90-degree angles leaving a deadly laser ribbon behind you. Collect quantum data nodes to accelerate while avoiding outer walls and your own light trail!',
+    controlsInfo: 'Arrow Keys or W/A/S/D / Swipe Screen to steer 90 degrees • Spacebar for Turbo Boost • Collect energy nodes',
+    playLink: '/game/lightcycle',
+  },
 ];
 
 export const seedPlayerCards: PlayerCards[] = [
@@ -123,13 +152,5 @@ export const seedPlayerCards: PlayerCards[] = [
     age: 23,
     gender: 'Female',
     avatar: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300&auto=format&fit=crop&q=80',
-  },
-  {
-    _id: 'card-matrix-ghost',
-    name: 'Kaelen Vance',
-    gamerTag: 'GHOST_RUNNER_99',
-    age: 24,
-    gender: 'Non-Binary',
-    avatar: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&auto=format&fit=crop&q=80',
   },
 ];
