@@ -25,212 +25,232 @@ class CyberAudioSynth {
   public enabled: boolean = true;
 
   private initCtx() {
-    if (!this.ctx && typeof window !== 'undefined') {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioCtx) {
-        this.ctx = new AudioCtx();
+    try {
+      if (!this.ctx && typeof window !== 'undefined') {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) {
+          this.ctx = new AudioCtx();
+        }
       }
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+    } catch {}
   }
 
   laser() {
-    if (!this.enabled) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    try {
+      if (!this.enabled) return;
+      this.initCtx();
+      if (!this.ctx) return;
 
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(880, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.15);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.15);
 
-    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.16);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.16);
+    } catch {}
   }
 
   alienLaser() {
-    if (!this.enabled) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    try {
+      if (!this.enabled) return;
+      this.initCtx();
+      if (!this.ctx) return;
 
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.12);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.12);
 
-    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.13);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.13);
+    } catch {}
   }
 
   ufoSiren() {
-    if (!this.enabled) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    try {
+      if (!this.enabled) return;
+      this.initCtx();
+      if (!this.ctx) return;
 
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, this.ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(900, this.ctx.currentTime + 0.1);
-    osc.frequency.linearRampToValueAtTime(600, this.ctx.currentTime + 0.2);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(900, this.ctx.currentTime + 0.1);
+      osc.frequency.linearRampToValueAtTime(600, this.ctx.currentTime + 0.2);
 
-    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.21);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.21);
+    } catch {}
   }
 
   explosion() {
-    if (!this.enabled) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    try {
+      if (!this.enabled) return;
+      this.initCtx();
+      if (!this.ctx) return;
 
-    const bufferSize = this.ctx.sampleRate * 0.3;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
+      const bufferSize = this.ctx.sampleRate * 0.3;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
 
-    const noise = this.ctx.createBufferSource();
-    noise.buffer = buffer;
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(800, this.ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.3);
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(800, this.ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.3);
 
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
 
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
 
-    noise.start();
-    noise.stop(this.ctx.currentTime + 0.31);
+      noise.start();
+      noise.stop(this.ctx.currentTime + 0.31);
+    } catch {}
   }
 
   pickup() {
-    if (!this.enabled) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    try {
+      if (!this.enabled) return;
+      this.initCtx();
+      if (!this.ctx) return;
 
-    const now = this.ctx.currentTime;
-    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
-      const osc = this.ctx!.createOscillator();
-      const gain = this.ctx!.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + i * 0.04);
-      gain.gain.setValueAtTime(0.15, now + i * 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.04 + 0.1);
-      osc.connect(gain);
-      gain.connect(this.ctx!.destination);
-      osc.start(now + i * 0.04);
-      osc.stop(now + i * 0.04 + 0.11);
-    });
+      const now = this.ctx.currentTime;
+      [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.04);
+        gain.gain.setValueAtTime(0.15, now + i * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.04 + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(now + i * 0.04);
+        osc.stop(now + i * 0.04 + 0.11);
+      });
+    } catch {}
   }
 
   jump() {
-    if (!this.enabled) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    try {
+      if (!this.enabled) return;
+      this.initCtx();
+      if (!this.ctx) return;
 
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(660, this.ctx.currentTime + 0.12);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(660, this.ctx.currentTime + 0.12);
 
-    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.13);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.13);
+    } catch {}
   }
 
   overdrive() {
-    if (!this.enabled) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    try {
+      if (!this.enabled) return;
+      this.initCtx();
+      if (!this.ctx) return;
 
-    const now = this.ctx.currentTime;
-    [330, 440, 554.37, 659.25, 880].forEach((freq, i) => {
-      const osc = this.ctx!.createOscillator();
-      const gain = this.ctx!.createGain();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(freq, now + i * 0.05);
-      gain.gain.setValueAtTime(0.2, now + i * 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.05 + 0.25);
-      osc.connect(gain);
-      gain.connect(this.ctx!.destination);
-      osc.start(now + i * 0.05);
-      osc.stop(now + i * 0.05 + 0.26);
-    });
+      const now = this.ctx.currentTime;
+      [330, 440, 554.37, 659.25, 880].forEach((freq, i) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, now + i * 0.05);
+        gain.gain.setValueAtTime(0.2, now + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.05 + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(now + i * 0.05);
+        osc.stop(now + i * 0.05 + 0.26);
+      });
+    } catch {}
   }
 
   slice() {
-    if (!this.enabled) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    try {
+      if (!this.enabled) return;
+      this.initCtx();
+      if (!this.ctx) return;
 
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.08);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.08);
 
-    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.09);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.09);
+    } catch {}
   }
 
   gameOverSound() {
-    if (!this.enabled) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    try {
+      if (!this.enabled) return;
+      this.initCtx();
+      if (!this.ctx) return;
 
-    const now = this.ctx.currentTime;
-    [440, 370, 311, 261].forEach((freq, i) => {
-      const osc = this.ctx!.createOscillator();
-      const gain = this.ctx!.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freq, now + i * 0.12);
-      gain.gain.setValueAtTime(0.25, now + i * 0.12);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.2);
-      osc.connect(gain);
-      gain.connect(this.ctx!.destination);
-      osc.start(now + i * 0.12);
-      osc.stop(now + i * 0.12 + 0.22);
-    });
+      const now = this.ctx.currentTime;
+      [440, 370, 311, 261].forEach((freq, i) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now + i * 0.12);
+        gain.gain.setValueAtTime(0.25, now + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(now + i * 0.12);
+        osc.stop(now + i * 0.12 + 0.22);
+      });
+    } catch {}
   }
 }
 
-const audioSynth = new CyberAudioSynth();
+  const audioSynth = new CyberAudioSynth();
 
 interface GameCanvasProps {
   game: MiniGames;
@@ -396,7 +416,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
   }, []);
 
-  // Initialize and scale Canvas (Clean event-based resize, zero layout thrashing)
+  // Initialize active Game and scale Canvas cleanly (Event-driven only, 0% CPU in RAF loop)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -404,25 +424,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const handleResize = () => {
-      updateCanvasDimensions(canvas, ctx);
-    };
-
-    // Initial scale
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    const handleFsChange = () => {
-      handleResize();
-      setTimeout(handleResize, 100);
-      setTimeout(handleResize, 300);
-      if (!document.fullscreenElement && isFullscreen) {
-        setIsFullscreen(false);
-      }
-    };
-    document.addEventListener('fullscreenchange', handleFsChange);
-    document.addEventListener('webkitfullscreenchange', handleFsChange);
-
+    // 1. Initialize the selected game FIRST so gameStateRef is ready to receive dimensions
     const id = gameId.toLowerCase();
     if (id.includes('invad') || id.includes('strike-swarm')) {
       initCyberInvaders(canvas, ctx);
@@ -442,7 +444,32 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       initNeonPulse(canvas, ctx);
     }
 
+    const handleResize = () => {
+      updateCanvasDimensions(canvas, ctx);
+    };
+
+    // 2. Initial dimensions sync with staged timers for Framer Motion entrance animation
+    handleResize();
+    const t1 = setTimeout(handleResize, 50);
+    const t2 = setTimeout(handleResize, 150);
+    const t3 = setTimeout(handleResize, 350);
+    window.addEventListener('resize', handleResize);
+
+    const handleFsChange = () => {
+      handleResize();
+      setTimeout(handleResize, 100);
+      setTimeout(handleResize, 300);
+      if (!document.fullscreenElement && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+
     return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('fullscreenchange', handleFsChange);
       document.removeEventListener('webkitfullscreenchange', handleFsChange);
@@ -452,12 +479,12 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
   }, [gameId, isFullscreen]);
 
-    // Ultra-Performant Canvas Buffer Sizing (Event-driven only, 0% CPU in RAF loop)
+  // Ultra-Performant Canvas Buffer Sizing with Safe Defaults (900x560)
   const updateCanvasDimensions = (c: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
-    const rect = c.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const displayW = Math.max(300, Math.floor(rect.width || c.clientWidth || 800));
-    const displayH = Math.max(200, Math.floor(rect.height || c.clientHeight || 560));
+    const rect = c.getBoundingClientRect();
+    const displayW = Math.max(400, Math.floor(rect.width || c.clientWidth || 900));
+    const displayH = Math.max(300, Math.floor(rect.height || c.clientHeight || 560));
 
     const bufferW = Math.floor(displayW * dpr);
     const bufferH = Math.floor(displayH * dpr);
@@ -480,8 +507,8 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
      ========================================================================= */
   const initNeonPulse = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     let animId: number;
-    let width = canvas.clientWidth;
-    let height = canvas.clientHeight;
+    let width = Math.max(400, canvas.clientWidth || 900);
+    let height = Math.max(300, canvas.clientHeight || 560);
 
     const numLanes = 5;
     let targetLane = 2;
@@ -570,8 +597,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
 
       ctx.fillStyle = isOverdriveActive ? 'rgba(35, 10, 45, 0.4)' : 'rgba(10, 10, 24, 0.35)';
       ctx.fillRect(0, 0, width, height);
@@ -755,6 +780,11 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       onResize: (newW: number, newH: number) => {
         width = newW;
         height = newH;
+        bunkers = [
+          { x: newW * 0.25, hp: bunkers[0]?.hp ?? 10 },
+          { x: newW * 0.5, hp: bunkers[1]?.hp ?? 10 },
+          { x: newW * 0.75, hp: bunkers[2]?.hp ?? 10 },
+        ];
       },
     };
   };
@@ -764,8 +794,8 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
      ========================================================================= */
   const initVortexDefender = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     let animId: number;
-    let width = canvas.clientWidth;
-    let height = canvas.clientHeight;
+    let width = Math.max(400, canvas.clientWidth || 900);
+    let height = Math.max(300, canvas.clientHeight || 560);
 
     let turretAngle = 0;
     let coreHealth = 100;
@@ -856,6 +886,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     let lastSpawn = Date.now();
 
     const loop = () => {
+      
       const cx = width / 2;
       const cy = height / 2;
 
@@ -1038,8 +1069,8 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
      ========================================================================= */
   const initQuantumDrift = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     let animId: number;
-    let width = canvas.clientWidth;
-    let height = canvas.clientHeight;
+    let width = Math.max(400, canvas.clientWidth || 900);
+    let height = Math.max(300, canvas.clientHeight || 560);
 
     let carX = width / 2;
     let targetX = width / 2;
@@ -1078,6 +1109,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     let lastSpawn = Date.now();
 
     const loop = () => {
+      
       ctx.fillStyle = '#0a0a1a';
       ctx.fillRect(0, 0, width, height);
 
@@ -1214,6 +1246,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         cancelAnimationFrame(animId);
         window.removeEventListener('keydown', handleKeyDown);
       },
+      onResize: (newW: number, newH: number) => {
+        width = newW;
+        height = newH;
+      },
     };
   };
 
@@ -1222,6 +1258,8 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
      ========================================================================= */
   const initHexaMatrix = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     let animId: number;
+    let width = Math.max(400, canvas.clientWidth || 900);
+    let height = Math.max(300, canvas.clientHeight || 560);
     const cols = 6;
     const rows = 5;
     let curScore = 0;
@@ -1244,8 +1282,8 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      const cellW = canvas.clientWidth / cols;
-      const cellH = canvas.clientHeight / rows;
+      const cellW = (rect.width || width) / cols;
+      const cellH = (rect.height || height) / rows;
       const c = Math.floor(x / cellW);
       const r = Math.floor(y / cellH);
 
@@ -1271,6 +1309,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     canvas.addEventListener('click', handleClick);
 
     const loop = () => {
+      
       ctx.fillStyle = '#101024';
       ctx.fillRect(0, 0, width, height);
 
@@ -1318,6 +1357,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         cancelAnimationFrame(animId);
         canvas.removeEventListener('click', handleClick);
       },
+      onResize: (newW: number, newH: number) => {
+        width = newW;
+        height = newH;
+      },
     };
   };
 
@@ -1326,8 +1369,8 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
      ========================================================================= */
   const initCyberSlash = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     let animId: number;
-    let width = canvas.clientWidth;
-    let height = canvas.clientHeight;
+    let width = Math.max(400, canvas.clientWidth || 900);
+    let height = Math.max(300, canvas.clientHeight || 560);
     let curScore = 0;
     let curLives = 3;
 
@@ -1395,6 +1438,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     window.addEventListener('mouseup', handleMouseUp);
 
     const loop = () => {
+      
       ctx.fillStyle = 'rgba(10, 10, 26, 0.4)';
       ctx.fillRect(0, 0, width, height);
 
@@ -1459,6 +1503,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         canvas.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
       },
+      onResize: (newW: number, newH: number) => {
+        width = newW;
+        height = newH;
+      },
     };
   };
 
@@ -1467,8 +1515,8 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
      ========================================================================= */
   const initGravRunner = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     let animId: number;
-    let width = canvas.clientWidth;
-    let height = canvas.clientHeight;
+    let width = Math.max(400, canvas.clientWidth || 900);
+    let height = Math.max(300, canvas.clientHeight || 560);
 
     let gravity = 1;
     let playerY = height - 60;
@@ -1499,6 +1547,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
+      
       ctx.fillStyle = '#0e0e22';
       ctx.fillRect(0, 0, width, height);
 
@@ -1613,8 +1662,8 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
      ========================================================================= */
   const initCyberInvaders = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     let animId: number;
-    let width = canvas.clientWidth;
-    let height = canvas.clientHeight;
+    let width = Math.max(400, canvas.clientWidth || 900);
+    let height = Math.max(300, canvas.clientHeight || 560);
 
     let playerX = width / 2;
     const playerSpeed = 7;
@@ -1692,6 +1741,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
+      
       ctx.fillStyle = '#0a0a1a';
       ctx.fillRect(0, 0, width, height);
 
@@ -1914,12 +1964,12 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
      ========================================================================= */
   const initLightcycle = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     let animId: number;
-    let width = canvas.clientWidth;
-    let height = canvas.clientHeight;
+    let width = Math.max(400, canvas.clientWidth || 900);
+    let height = Math.max(300, canvas.clientHeight || 560);
 
     const gridSize = 16;
-    let cycleX = Math.floor((width / 2) / gridSize) * gridSize;
-    let cycleY = Math.floor((height / 2) / gridSize) * gridSize;
+    let cycleX = Math.floor((width / 2) / gridSize) * gridSize || 320;
+    let cycleY = Math.floor((height / 2) / gridSize) * gridSize || 240;
     let dir = { x: gridSize, y: 0 };
     let nextDir = { x: gridSize, y: 0 };
 
@@ -1967,6 +2017,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
+      
       const currentStep = isTurbo ? speedMs * 0.5 : speedMs;
       if (Date.now() - lastMove > currentStep) {
         dir = nextDir;
@@ -1976,8 +2027,8 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         cycleY += dir.y;
         lastMove = Date.now();
 
-        // Boundary Crash Check
-        if (cycleX < 0 || cycleX >= width || cycleY < 0 || cycleY >= height) {
+        // Boundary Crash Check (Guarded against 0 dimensions)
+        if (width > 100 && height > 100 && (cycleX < 0 || cycleX >= width || cycleY < 0 || cycleY >= height)) {
           audioSynth.explosion();
           audioSynth.gameOverSound();
           setGameOver(true);
