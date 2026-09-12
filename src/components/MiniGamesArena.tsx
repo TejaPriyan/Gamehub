@@ -11,6 +11,7 @@ import {
   Sparkles, 
   SlidersHorizontal, 
   Maximize2,
+  ExternalLink,
   X,
   Target
 } from 'lucide-react';
@@ -367,8 +368,8 @@ export default function MiniGamesArena({ playSound }: MiniGamesArenaProps) {
                     onClick={() => handlePlayGame(activeQuickPlayGame)}
                     className="px-3 py-1.5 rounded-lg border border-accent-cyan/40 font-mono text-xs text-accent-cyan hover:bg-accent-cyan hover:text-dark-background transition-colors flex items-center gap-1.5"
                   >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    Full Screen
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Arena Details
                   </button>
                   <button
                     onClick={() => setActiveQuickPlayGame(null)}

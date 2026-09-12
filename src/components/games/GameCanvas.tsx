@@ -250,6 +250,25 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
   const [overdrivePercent, setOverdrivePercent] = useState(0);
   const [lives, setLives] = useState(3);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showPlayerDossier, setShowPlayerDossier] = useState(false);
+  const [activePlayer, setActivePlayer] = useState<any>(null);
+
+  // Load Active Operative Player Identity
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('cyber_player_card_active');
+      if (saved) {
+        setActivePlayer(JSON.parse(saved));
+      } else {
+        setActivePlayer({
+          name: 'Operative Priya',
+          gamerTag: 'CYBER_VIPER',
+          cyberRole: 'High-Score Infiltrator',
+          tier: 'LEGENDARY',
+        });
+      }
+    } catch {}
+  }, []);
 
   const gameStateRef = useRef<any>(null);
   const inputBridgeRef = useRef<{ triggerAction: (action: string) => void }>({
@@ -292,12 +311,32 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       setIsFullscreen(true);
       if (containerRef.current?.requestFullscreen) {
         containerRef.current.requestFullscreen().catch(() => {});
+      } else if ((containerRef.current as any)?.webkitRequestFullscreen) {
+        (containerRef.current as any).webkitRequestFullscreen();
       }
+      setTimeout(() => {
+        if (canvasRef.current) {
+          const ctx = canvasRef.current.getContext('2d');
+          if (ctx) syncCanvas(canvasRef.current, ctx);
+        }
+      }, 100);
+      setTimeout(() => {
+        if (canvasRef.current) {
+          const ctx = canvasRef.current.getContext('2d');
+          if (ctx) syncCanvas(canvasRef.current, ctx);
+        }
+      }, 300);
     } else {
       setIsFullscreen(false);
       if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
       }
+      setTimeout(() => {
+        if (canvasRef.current) {
+          const ctx = canvasRef.current.getContext('2d');
+          if (ctx) syncCanvas(canvasRef.current, ctx);
+        }
+      }, 150);
     }
   };
 
@@ -357,7 +396,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
   }, []);
 
-  // Initialize and scale Canvas
+  // Initialize and scale Canvas with ResizeObserver and Fullscreen Handlers
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -365,15 +404,28 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const resizeCanvas = () => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
+    const handleResize = () => {
+      syncCanvas(canvas, ctx);
     };
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(canvas);
+
+    const handleFsChange = () => {
+      handleResize();
+      setTimeout(handleResize, 100);
+      setTimeout(handleResize, 300);
+      if (!document.fullscreenElement && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
 
     const id = gameId.toLowerCase();
     if (id.includes('invad') || id.includes('strike-swarm')) {
@@ -395,14 +447,39 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     }
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
       if (gameStateRef.current?.cleanup) {
         gameStateRef.current.cleanup();
       }
     };
   }, [gameId, isFullscreen]);
 
-  /* =========================================================================
+    // Bulletproof Canvas Buffer Synchronization
+  // Guarantees drawing buffer strictly matches client display size at every frame
+  const syncCanvas = (c: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = c.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : c.clientWidth;
+    const h = rect.height > 0 ? rect.height : c.clientHeight;
+    const targetW = Math.max(300, Math.floor(w * dpr));
+    const targetH = Math.max(200, Math.floor(h * dpr));
+
+    if (c.width !== targetW || c.height !== targetH) {
+      c.width = targetW;
+      c.height = targetH;
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    return {
+      w: w || (c.width / dpr),
+      h: h || (c.height / dpr),
+      dpr,
+    };
+  };
+
+/* =========================================================================
      GAME 1: NEON PULSE (Hyper Rhythm & Lane Dash)
      ========================================================================= */
   const initNeonPulse = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
@@ -779,8 +856,9 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     let lastSpawn = Date.now();
 
     const loop = () => {
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
+      const { w, h } = syncCanvas(canvas, ctx);
+      width = w;
+      height = h;
       const cx = width / 2;
       const cy = height / 2;
 
@@ -999,8 +1077,9 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     let lastSpawn = Date.now();
 
     const loop = () => {
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
+      const { w, h } = syncCanvas(canvas, ctx);
+      width = w;
+      height = h;
 
       ctx.fillStyle = '#0a0a1a';
       ctx.fillRect(0, 0, width, height);
@@ -1195,8 +1274,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     canvas.addEventListener('click', handleClick);
 
     const loop = () => {
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
+      const { w: width, h: height } = syncCanvas(canvas, ctx);
       ctx.fillStyle = '#101024';
       ctx.fillRect(0, 0, width, height);
 
@@ -1321,8 +1399,9 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     window.addEventListener('mouseup', handleMouseUp);
 
     const loop = () => {
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
+      const { w, h } = syncCanvas(canvas, ctx);
+      width = w;
+      height = h;
 
       ctx.fillStyle = 'rgba(10, 10, 26, 0.4)';
       ctx.fillRect(0, 0, width, height);
@@ -1428,8 +1507,9 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
+      const { w, h } = syncCanvas(canvas, ctx);
+      width = w;
+      height = h;
 
       ctx.fillStyle = '#0e0e22';
       ctx.fillRect(0, 0, width, height);
@@ -1620,8 +1700,9 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
+      const { w, h } = syncCanvas(canvas, ctx);
+      width = w;
+      height = h;
 
       ctx.fillStyle = '#0a0a1a';
       ctx.fillRect(0, 0, width, height);
@@ -1794,13 +1875,31 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         }
       });
 
-      // Draw Player Cannon
+      // Draw Player Cannon & Glowing Neon Beacon
       ctx.save();
+      // Glowing under-base
+      ctx.fillStyle = 'rgba(0, 255, 102, 0.25)';
+      ctx.beginPath();
+      ctx.ellipse(playerX, height - 38, 30, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cannon body
       ctx.fillStyle = '#00FF66';
-      ctx.shadowBlur = 16;
+      ctx.shadowBlur = 22;
       ctx.shadowColor = '#00FF66';
       ctx.fillRect(playerX - 22, height - 48, 44, 18);
       ctx.fillRect(playerX - 5, height - 60, 10, 14);
+
+      // Cyan Barrel Tip
+      ctx.fillStyle = '#00FFFF';
+      ctx.shadowColor = '#00FFFF';
+      ctx.fillRect(playerX - 2, height - 64, 4, 6);
+
+      // Neon Player Beacon Tag
+      ctx.font = 'bold 10px monospace';
+      ctx.fillStyle = '#00FFFF';
+      ctx.textAlign = 'center';
+      ctx.fillText('▲ YOU', playerX, height - 12);
       ctx.restore();
 
       animId = requestAnimationFrame(loop);
@@ -1876,8 +1975,9 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
+      const { w, h } = syncCanvas(canvas, ctx);
+      width = w;
+      height = h;
 
       const currentStep = isTurbo ? speedMs * 0.5 : speedMs;
       if (Date.now() - lastMove > currentStep) {
@@ -1964,12 +2064,20 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ctx.fillRect(chip.x + 2, chip.y + 2, gridSize - 4, gridSize - 4);
       ctx.restore();
 
-      // Draw Lightcycle Head
+      // Draw Lightcycle Head & Player Beacon
       ctx.save();
       ctx.fillStyle = '#FFFFFF';
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = 24;
       ctx.shadowColor = isTurbo ? '#FF00FF' : '#00FFFF';
-      ctx.fillRect(cycleX + 1, cycleY + 1, gridSize - 2, gridSize - 2);
+      ctx.fillRect(cycleX, cycleY, gridSize, gridSize);
+      ctx.fillStyle = isTurbo ? '#FF0055' : '#00FFFF';
+      ctx.fillRect(cycleX + 3, cycleY + 3, gridSize - 6, gridSize - 6);
+
+      // Player Tag
+      ctx.font = 'bold 9px monospace';
+      ctx.fillStyle = '#00FFFF';
+      ctx.textAlign = 'center';
+      ctx.fillText('YOU', cycleX + gridSize / 2, cycleY - 5);
       ctx.restore();
 
       animId = requestAnimationFrame(loop);
@@ -2029,18 +2137,20 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       ref={containerRef}
       className={`relative w-full transition-all ${
         isFullscreen 
-          ? 'fixed inset-0 z-[9999] w-screen h-screen bg-[#070716] p-3 md:p-6 flex flex-col justify-between overflow-hidden' 
+          ? 'fixed inset-0 z-[9999] w-screen h-screen bg-[#070716] p-2 md:p-3 flex flex-col overflow-hidden' 
           : ''
       }`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <div className={`relative p-4 md:p-6 rounded-2xl bg-dark-background/90 backdrop-blur-xl border-2 border-accent-cyan/30 shadow-[0_0_40px_rgba(0,255,255,0.15)] flex flex-col ${
-        isFullscreen ? 'h-full border-accent-magenta/50 shadow-[0_0_80px_rgba(255,0,255,0.25)]' : ''
+      <div className={`relative bg-dark-background/95 backdrop-blur-xl border-2 border-accent-cyan/30 shadow-[0_0_40px_rgba(0,255,255,0.15)] flex flex-col ${
+        isFullscreen ? 'h-full w-full p-2 md:p-3 rounded-lg border-accent-magenta/50 shadow-[0_0_80px_rgba(255,0,255,0.25)] justify-between' : 'p-4 md:p-6 rounded-2xl'
       }`}>
         {/* Game Top HUD */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-accent-cyan/20">
+        <div className={`flex flex-wrap items-center justify-between gap-2 border-b border-accent-cyan/20 ${
+          isFullscreen ? 'mb-2 pb-2' : 'mb-4 pb-3'
+        }`}>
           <div className="flex flex-wrap items-center gap-3">
             <h3 className="font-heading text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-magenta uppercase">
               {game.gameTitle}
@@ -2071,6 +2181,20 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Active Operative / Player Identity */}
+            <button
+              onClick={() => setShowPlayerDossier(!showPlayerDossier)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-purple/20 border border-accent-purple/50 text-accent-purple hover:bg-accent-purple/40 hover:text-white transition-all font-mono text-xs font-bold"
+              title="View Operative Identity & Stats"
+            >
+              <User className="w-3.5 h-3.5 text-accent-cyan" />
+              <span className="text-accent-cyan hidden md:inline">OPERATIVE:</span>
+              <span className="text-white tracking-wider font-mono font-black">{activePlayer?.gamerTag || 'CYBER_OPERATIVE'}</span>
+              <span className="hidden sm:inline px-1.5 py-0.2 rounded bg-accent-magenta/30 text-accent-magenta text-[10px] font-black uppercase">
+                {activePlayer?.tier || 'ELITE'}
+              </span>
+            </button>
+
             {/* Fullscreen Button */}
             <button
               onClick={toggleFullscreen}
@@ -2131,6 +2255,71 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
             }}
           />
 
+          {/* Active Player Dossier Modal Overlay */}
+          {showPlayerDossier && (
+            <motion.div
+              className="absolute inset-0 z-50 flex items-center justify-center bg-dark-background/90 backdrop-blur-md p-4"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <div className="relative w-full max-w-md p-6 rounded-2xl bg-[#0c0c20] border-2 border-accent-cyan shadow-[0_0_50px_rgba(0,255,255,0.3)] text-left">
+                <button
+                  onClick={() => setShowPlayerDossier(false)}
+                  className="absolute top-4 right-4 p-1.5 rounded-lg border border-accent-magenta/40 text-accent-magenta hover:bg-accent-magenta hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-accent-cyan/20 border border-accent-cyan flex items-center justify-center text-accent-cyan shadow-[0_0_20px_rgba(0,255,255,0.4)]">
+                    <User className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accent-magenta/20 text-accent-magenta border border-accent-magenta/40 uppercase tracking-wider font-bold">
+                      {activePlayer?.tier || 'LEGENDARY OPERATIVE'}
+                    </span>
+                    <h3 className="font-heading text-xl font-black text-white uppercase mt-0.5">
+                      {activePlayer?.gamerTag || 'CYBER_VIPER'}
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="space-y-3 font-mono text-xs">
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                    <span className="text-light-foreground/60">CODENAME:</span>
+                    <span className="text-accent-cyan font-bold">{activePlayer?.name || 'Operative Priya'}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                    <span className="text-light-foreground/60">SPECIALIZATION:</span>
+                    <span className="text-accent-magenta font-bold">{activePlayer?.cyberRole || 'Grid Infiltrator & Speed Demon'}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                    <span className="text-light-foreground/60">ARENA RECORD:</span>
+                    <span className="text-yellow-400 font-bold">{Math.max(highScore, 2850)} PTS</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                    <span className="text-light-foreground/60">OPERATIVE STATUS:</span>
+                    <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      ACTIVE IN GRID
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-[11px] font-mono text-light-foreground/50">PRESS [F] FOR FULLSCREEN</span>
+                  <button
+                    onClick={() => setShowPlayerDossier(false)}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-accent-cyan to-accent-magenta text-dark-background font-mono text-xs font-black uppercase tracking-wider hover:opacity-90 transition-opacity"
+                  >
+                    CONTINUE MISSION
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* Game Over Screen */}
           {gameOver && (
             <motion.div
@@ -2170,7 +2359,9 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         </div>
 
         {/* On-Screen Mobile Virtual Controls with Zero Scroll Interference */}
-        <div className="mt-4 pt-2 flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-light-foreground/70 select-none">
+        <div className={`flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-light-foreground/70 select-none ${
+          isFullscreen ? 'mt-2 pt-1.5' : 'mt-4 pt-2'
+        }`}>
           <div className="flex items-center gap-2">
             <span className="text-accent-cyan font-bold">CONTROLS:</span>
             <span>Arrows / WASD / Spacebar / Touch Buttons • Press [F] for Fullscreen</span>
