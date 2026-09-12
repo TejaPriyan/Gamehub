@@ -317,13 +317,13 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       setTimeout(() => {
         if (canvasRef.current) {
           const ctx = canvasRef.current.getContext('2d');
-          if (ctx) syncCanvas(canvasRef.current, ctx);
+          if (ctx) updateCanvasDimensions(canvasRef.current, ctx);
         }
       }, 100);
       setTimeout(() => {
         if (canvasRef.current) {
           const ctx = canvasRef.current.getContext('2d');
-          if (ctx) syncCanvas(canvasRef.current, ctx);
+          if (ctx) updateCanvasDimensions(canvasRef.current, ctx);
         }
       }, 300);
     } else {
@@ -334,7 +334,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
       setTimeout(() => {
         if (canvasRef.current) {
           const ctx = canvasRef.current.getContext('2d');
-          if (ctx) syncCanvas(canvasRef.current, ctx);
+          if (ctx) updateCanvasDimensions(canvasRef.current, ctx);
         }
       }, 150);
     }
@@ -396,7 +396,7 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
   }, []);
 
-  // Initialize and scale Canvas with ResizeObserver and Fullscreen Handlers
+  // Initialize and scale Canvas (Clean event-based resize, zero layout thrashing)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -405,16 +405,12 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     if (!ctx) return;
 
     const handleResize = () => {
-      syncCanvas(canvas, ctx);
+      updateCanvasDimensions(canvas, ctx);
     };
 
+    // Initial scale
     handleResize();
     window.addEventListener('resize', handleResize);
-
-    const resizeObserver = new ResizeObserver(() => {
-      handleResize();
-    });
-    resizeObserver.observe(canvas);
 
     const handleFsChange = () => {
       handleResize();
@@ -448,7 +444,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      resizeObserver.disconnect();
       document.removeEventListener('fullscreenchange', handleFsChange);
       document.removeEventListener('webkitfullscreenchange', handleFsChange);
       if (gameStateRef.current?.cleanup) {
@@ -457,26 +452,27 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
   }, [gameId, isFullscreen]);
 
-    // Bulletproof Canvas Buffer Synchronization
-  // Guarantees drawing buffer strictly matches client display size at every frame
-  const syncCanvas = (c: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Ultra-Performant Canvas Buffer Sizing (Event-driven only, 0% CPU in RAF loop)
+  const updateCanvasDimensions = (c: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
     const rect = c.getBoundingClientRect();
-    const w = rect.width > 0 ? rect.width : c.clientWidth;
-    const h = rect.height > 0 ? rect.height : c.clientHeight;
-    const targetW = Math.max(300, Math.floor(w * dpr));
-    const targetH = Math.max(200, Math.floor(h * dpr));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const displayW = Math.max(300, Math.floor(rect.width || c.clientWidth || 800));
+    const displayH = Math.max(200, Math.floor(rect.height || c.clientHeight || 560));
 
-    if (c.width !== targetW || c.height !== targetH) {
-      c.width = targetW;
-      c.height = targetH;
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const bufferW = Math.floor(displayW * dpr);
+    const bufferH = Math.floor(displayH * dpr);
+
+    if (c.width !== bufferW || c.height !== bufferH) {
+      c.width = bufferW;
+      c.height = bufferH;
     }
-    return {
-      w: w || (c.width / dpr),
-      h: h || (c.height / dpr),
-      dpr,
-    };
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (gameStateRef.current?.onResize) {
+      gameStateRef.current.onResize(displayW, displayH);
+    }
+
+    return { width: displayW, height: displayH };
   };
 
 /* =========================================================================
@@ -756,6 +752,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         cancelAnimationFrame(animId);
         window.removeEventListener('keydown', handleKeyDown);
       },
+      onResize: (newW: number, newH: number) => {
+        width = newW;
+        height = newH;
+      },
     };
   };
 
@@ -856,9 +856,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     let lastSpawn = Date.now();
 
     const loop = () => {
-      const { w, h } = syncCanvas(canvas, ctx);
-      width = w;
-      height = h;
       const cx = width / 2;
       const cy = height / 2;
 
@@ -1029,6 +1026,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         canvas.removeEventListener('click', handleClick);
         window.removeEventListener('keydown', handleKeyDown);
       },
+      onResize: (newW: number, newH: number) => {
+        width = newW;
+        height = newH;
+      },
     };
   };
 
@@ -1077,10 +1078,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     let lastSpawn = Date.now();
 
     const loop = () => {
-      const { w, h } = syncCanvas(canvas, ctx);
-      width = w;
-      height = h;
-
       ctx.fillStyle = '#0a0a1a';
       ctx.fillRect(0, 0, width, height);
 
@@ -1274,7 +1271,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     canvas.addEventListener('click', handleClick);
 
     const loop = () => {
-      const { w: width, h: height } = syncCanvas(canvas, ctx);
       ctx.fillStyle = '#101024';
       ctx.fillRect(0, 0, width, height);
 
@@ -1399,10 +1395,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     window.addEventListener('mouseup', handleMouseUp);
 
     const loop = () => {
-      const { w, h } = syncCanvas(canvas, ctx);
-      width = w;
-      height = h;
-
       ctx.fillStyle = 'rgba(10, 10, 26, 0.4)';
       ctx.fillRect(0, 0, width, height);
 
@@ -1507,10 +1499,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
-      const { w, h } = syncCanvas(canvas, ctx);
-      width = w;
-      height = h;
-
       ctx.fillStyle = '#0e0e22';
       ctx.fillRect(0, 0, width, height);
 
@@ -1613,6 +1601,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         window.removeEventListener('keydown', handleKeyDown);
         canvas.removeEventListener('click', flipGravity);
       },
+      onResize: (newW: number, newH: number) => {
+        width = newW;
+        height = newH;
+      },
     };
   };
 
@@ -1700,10 +1692,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
-      const { w, h } = syncCanvas(canvas, ctx);
-      width = w;
-      height = h;
-
       ctx.fillStyle = '#0a0a1a';
       ctx.fillRect(0, 0, width, height);
 
@@ -1914,6 +1902,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         window.removeEventListener('keyup', handleKeyUp);
         canvas.removeEventListener('click', fireBullet);
       },
+      onResize: (newW: number, newH: number) => {
+        width = newW;
+        height = newH;
+      },
     };
   };
 
@@ -1975,10 +1967,6 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
     };
 
     const loop = () => {
-      const { w, h } = syncCanvas(canvas, ctx);
-      width = w;
-      height = h;
-
       const currentStep = isTurbo ? speedMs * 0.5 : speedMs;
       if (Date.now() - lastMove > currentStep) {
         dir = nextDir;
@@ -2090,6 +2078,10 @@ export default function GameCanvas({ game, onExit, playSound }: GameCanvasProps)
         cancelAnimationFrame(animId);
         window.removeEventListener('keydown', handleKeyDown);
         window.removeEventListener('keyup', handleKeyUp);
+      },
+      onResize: (newW: number, newH: number) => {
+        width = newW;
+        height = newH;
       },
     };
   };
