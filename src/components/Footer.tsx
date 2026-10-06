@@ -75,6 +75,20 @@ export default function Footer() {
             </p>
 
             {/* Arcade Specs Pills */}
+                        {/* Buy Me a Pizza Button */}
+            <div className="pt-1">
+              <a
+                href="https://www.buymeacoffee.com/TejaPriyan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FFDD00] text-black font-mono font-bold text-xs shadow-[0_0_15px_rgba(255,221,0,0.3)] hover:scale-105 transition-transform"
+                title="Support the creator with a pizza"
+              >
+                <span className="text-base leading-none">🍕</span>
+                <span>BUY ME A PIZZA</span>
+              </a>
+            </div>
+
             <div className="grid grid-cols-2 gap-2.5 pt-2">
               {arcadeHighlights.map((spec) => (
                 <div
