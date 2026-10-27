@@ -128,6 +128,7 @@ export default function Footer() {
           ))}
         </div>
 
+        <nav aria-label="Site information" className="flex flex-wrap gap-x-6 gap-y-3 mb-8 text-sm text-light-foreground">{[["guides/index.html","Guides"],["about.html","About"],["contact.html","Contact"],["privacy.html","Privacy"],["terms.html","Terms"]].map(([path,label]) => <a key={path} href={`${import.meta.env.BASE_URL}${path}`} className="underline underline-offset-4 focus-visible:outline focus-visible:outline-2">{label}</a>)}</nav>
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 font-mono text-xs text-light-foreground/55">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">

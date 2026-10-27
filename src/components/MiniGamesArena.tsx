@@ -283,11 +283,11 @@ export default function MiniGamesArena({ playSound }: MiniGamesArenaProps) {
                         <div className="flex items-center justify-between pt-1 border-t border-white/5 font-mono text-xs">
                           <div className="flex items-center gap-1.5 text-accent-cyan">
                             <Star className="w-3.5 h-3.5 fill-current" />
-                            <span className="font-bold">{game.rating || 4.9}</span>
+                            <span className="font-bold">Browser arcade</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-light-foreground/60">
                             <Gamepad2 className="w-3.5 h-3.5 text-accent-magenta" />
-                            <span>{game.plays || '15K'} plays</span>
+                            <span>Local scores</span>
                           </div>
                         </div>
                       </div>

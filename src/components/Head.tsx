@@ -51,6 +51,7 @@ export const Head = () => {
   return (
     <>
       <meta charSet="UTF-8" />
+      <meta name="google-adsense-account" content="ca-pub-8817990111687358" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
       
       {/* Primary Meta Tags */}
