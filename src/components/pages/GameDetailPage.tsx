@@ -145,13 +145,13 @@ export default function GameDetailPage() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 rounded-xl bg-dark-background/80 backdrop-blur-md border border-accent-cyan/25 text-center">
                   <Star className="w-5 h-5 text-accent-cyan fill-accent-cyan mx-auto mb-1.5" />
-                  <div className="font-heading text-xl font-bold text-accent-cyan">{game.rating || 4.9}</div>
-                  <div className="font-mono text-[11px] text-light-foreground/60 uppercase">Rating</div>
+                  <div className="font-heading text-xl font-bold text-accent-cyan">Instant</div>
+                  <div className="font-mono text-[11px] text-light-foreground/60 uppercase">Browser access</div>
                 </div>
                 <div className="p-4 rounded-xl bg-dark-background/80 backdrop-blur-md border border-accent-magenta/25 text-center">
                   <Gamepad2 className="w-5 h-5 text-accent-magenta mx-auto mb-1.5" />
-                  <div className="font-heading text-xl font-bold text-accent-magenta">{game.plays || '18K'}</div>
-                  <div className="font-mono text-[11px] text-light-foreground/60 uppercase">Plays</div>
+                  <div className="font-heading text-xl font-bold text-accent-magenta">Local</div>
+                  <div className="font-mono text-[11px] text-light-foreground/60 uppercase">High scores</div>
                 </div>
                 <div className="p-4 rounded-xl bg-dark-background/80 backdrop-blur-md border border-accent-purple/25 text-center">
                   <Trophy className="w-5 h-5 text-accent-purple mx-auto mb-1.5" />
